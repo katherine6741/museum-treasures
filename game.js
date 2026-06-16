@@ -375,17 +375,7 @@
     const height = canvas.height;
     const horizon = height * (0.48 + game.player.pitch);
 
-    const sky = ctx.createLinearGradient(0, 0, 0, horizon);
-    sky.addColorStop(0, "#101b33");
-    sky.addColorStop(1, "#263c5d");
-    ctx.fillStyle = sky;
-    ctx.fillRect(0, 0, width, horizon);
-
-    const floor = ctx.createLinearGradient(0, horizon, 0, height);
-    floor.addColorStop(0, "#22283a");
-    floor.addColorStop(1, "#080b13");
-    ctx.fillStyle = floor;
-    ctx.fillRect(0, horizon, width, height - horizon);
+    renderMuseumBackdrop(width, height, horizon, time);
 
     const columns = Math.min(width, 520);
     const columnWidth = width / columns;
@@ -396,20 +386,126 @@
       const hit = castRay(angle);
       const corrected = hit.distance * Math.cos(angle - game.player.angle);
       const wallHeight = Math.min(height, height / Math.max(0.001, corrected));
-      const shade = Math.max(34, 210 - corrected * 26);
       const x = i * columnWidth;
       const y = horizon - wallHeight / 2;
-      ctx.fillStyle = hit.side === "x" ? `rgb(${shade},${Math.floor(shade * 0.78)},${Math.floor(shade * 0.48)})` : `rgb(${Math.floor(shade * 0.56)},${Math.floor(shade * 0.69)},${shade})`;
-      ctx.fillRect(x, y, Math.ceil(columnWidth) + 1, wallHeight);
-      if (corrected < 2.5) {
-        ctx.fillStyle = "rgba(255, 255, 255, 0.04)";
-        ctx.fillRect(x, y, Math.ceil(columnWidth) + 1, 4);
-      }
+      renderWallColumn(hit, corrected, x, y, Math.ceil(columnWidth) + 1, wallHeight, time);
       depthBuffer[i] = corrected;
     }
 
     renderWorldObjects(depthBuffer, time);
     renderMinimap(time);
+    renderScreenGrade(width, height, time);
+  }
+
+  function renderMuseumBackdrop(width, height, horizon, time) {
+    const ceiling = ctx.createLinearGradient(0, 0, 0, horizon);
+    ceiling.addColorStop(0, "#07111f");
+    ceiling.addColorStop(0.45, "#132542");
+    ceiling.addColorStop(1, "#223c63");
+    ctx.fillStyle = ceiling;
+    ctx.fillRect(0, 0, width, horizon);
+
+    const floor = ctx.createLinearGradient(0, horizon, 0, height);
+    floor.addColorStop(0, "#26334d");
+    floor.addColorStop(0.42, "#121a2b");
+    floor.addColorStop(1, "#050911");
+    ctx.fillStyle = floor;
+    ctx.fillRect(0, horizon, width, height - horizon);
+
+    renderCeilingGlow(width, horizon, time);
+    renderFloorPerspective(width, height, horizon);
+  }
+
+  function renderCeilingGlow(width, horizon, time) {
+    const glowCount = 5;
+    for (let i = 0; i < glowCount; i += 1) {
+      const x = (i + 0.5) * (width / glowCount) + Math.sin(time * 0.5 + i) * width * 0.01;
+      const y = horizon * 0.34;
+      const radius = width * 0.12;
+      const glow = ctx.createRadialGradient(x, y, 0, x, y, radius);
+      glow.addColorStop(0, "rgba(255, 209, 102, 0.12)");
+      glow.addColorStop(1, "rgba(255, 209, 102, 0)");
+      ctx.fillStyle = glow;
+      ctx.fillRect(x - radius, y - radius, radius * 2, radius * 2);
+    }
+  }
+
+  function renderFloorPerspective(width, height, horizon) {
+    ctx.save();
+    ctx.globalAlpha = 0.28;
+    ctx.strokeStyle = "rgba(155, 188, 218, 0.32)";
+    ctx.lineWidth = Math.max(1, width * 0.0012);
+
+    const centerX = width / 2;
+    for (let i = -7; i <= 7; i += 1) {
+      const startX = centerX + i * width * 0.055;
+      ctx.beginPath();
+      ctx.moveTo(centerX + i * width * 0.012, horizon);
+      ctx.lineTo(startX, height);
+      ctx.stroke();
+    }
+
+    for (let i = 1; i <= 8; i += 1) {
+      const t = i / 8;
+      const y = horizon + (height - horizon) * (t * t);
+      ctx.globalAlpha = 0.2 + t * 0.14;
+      ctx.beginPath();
+      ctx.moveTo(0, y);
+      ctx.lineTo(width, y);
+      ctx.stroke();
+    }
+    ctx.restore();
+  }
+
+  function renderWallColumn(hit, distance, x, y, width, height, time) {
+    const fog = clamp(distance / MAX_RAY_DISTANCE, 0, 1);
+    const base = Math.max(42, 222 - distance * 27);
+    const warm = hit.side === "x";
+    const panel = wallPanelFactor(hit);
+    const shimmer = Math.sin((hit.x + hit.y) * 5 + time * 0.7) * 4;
+    const r = Math.floor((warm ? base * 1.08 : base * 0.68) + panel * 20 + shimmer);
+    const g = Math.floor((warm ? base * 0.82 : base * 0.82) + panel * 16);
+    const b = Math.floor((warm ? base * 0.5 : base * 1.08) + panel * 18);
+
+    const gradient = ctx.createLinearGradient(0, y, 0, y + height);
+    gradient.addColorStop(0, `rgb(${clampColor(r + 22)},${clampColor(g + 22)},${clampColor(b + 22)})`);
+    gradient.addColorStop(0.12, `rgb(${clampColor(r)},${clampColor(g)},${clampColor(b)})`);
+    gradient.addColorStop(0.78, `rgb(${clampColor(r * 0.72)},${clampColor(g * 0.72)},${clampColor(b * 0.72)})`);
+    gradient.addColorStop(1, `rgb(${clampColor(r * 0.46)},${clampColor(g * 0.46)},${clampColor(b * 0.46)})`);
+    ctx.fillStyle = gradient;
+    ctx.fillRect(x, y, width, height);
+
+    const local = wallTextureCoordinate(hit);
+    if (local < 0.08 || local > 0.92) {
+      ctx.fillStyle = "rgba(255, 209, 102, 0.16)";
+      ctx.fillRect(x, y, width, height);
+    }
+    if (local > 0.47 && local < 0.53) {
+      ctx.fillStyle = "rgba(255, 255, 255, 0.06)";
+      ctx.fillRect(x, y + height * 0.08, width, height * 0.84);
+    }
+
+    ctx.fillStyle = `rgba(5, 10, 20, ${0.08 + fog * 0.54})`;
+    ctx.fillRect(x, y, width, height);
+
+    if (distance < 2.5) {
+      ctx.fillStyle = "rgba(255, 255, 255, 0.045)";
+      ctx.fillRect(x, y, width, Math.max(2, height * 0.012));
+    }
+  }
+
+  function wallTextureCoordinate(hit) {
+    const coordinate = hit.side === "x" ? hit.y : hit.x;
+    return coordinate - Math.floor(coordinate);
+  }
+
+  function wallPanelFactor(hit) {
+    const local = wallTextureCoordinate(hit);
+    return local > 0.12 && local < 0.88 ? 1 : 0;
+  }
+
+  function clampColor(value) {
+    return Math.max(0, Math.min(255, Math.floor(value)));
   }
 
   function renderWorldObjects(depthBuffer, time) {
@@ -446,6 +542,7 @@
     ctx.save();
     ctx.translate(x, floorY);
     if (object.type === "diamond") {
+      drawGlow(0, -size * 0.16, size * 0.62, "rgba(85, 214, 255, 0.34)");
       ctx.rotate(Math.sin(time * 2.4) * 0.1);
       ctx.fillStyle = "#9df3ff";
       ctx.strokeStyle = "#ffffff";
@@ -454,6 +551,7 @@
       ctx.fillStyle = "rgba(255, 255, 255, 0.72)";
       polygon([[0, -size * 0.5], [size * 0.16, -size * 0.18], [0, 0], [-size * 0.16, -size * 0.18]], true);
     } else if (object.type === "exit") {
+      drawGlow(0, -size * 0.28, size * 0.82, "rgba(85, 214, 255, 0.24)");
       ctx.fillStyle = "rgba(85, 214, 255, 0.28)";
       ctx.fillRect(-size * 0.36, -size * 0.9, size * 0.72, size * 1.2);
       ctx.strokeStyle = "#55d6ff";
@@ -472,6 +570,7 @@
       ctx.lineTo(size * 0.42, -size * 0.42);
       ctx.stroke();
     } else if (object.type === "waste") {
+      drawGlow(0, size * 0.04, size * 0.36, "rgba(69, 227, 148, 0.26)");
       ctx.fillStyle = "rgba(69, 227, 148, 0.68)";
       ctx.beginPath();
       ctx.ellipse(0, size * 0.05, size * 0.48, size * 0.18, 0, 0, Math.PI * 2);
@@ -491,6 +590,16 @@
       ctx.fill();
     }
     ctx.restore();
+  }
+
+  function drawGlow(x, y, radius, color) {
+    const glow = ctx.createRadialGradient(x, y, 0, x, y, radius);
+    glow.addColorStop(0, color);
+    glow.addColorStop(1, "rgba(255, 255, 255, 0)");
+    ctx.fillStyle = glow;
+    ctx.beginPath();
+    ctx.arc(x, y, radius, 0, Math.PI * 2);
+    ctx.fill();
   }
 
   function polygon(points, stroke) {
@@ -569,6 +678,18 @@
     ctx.closePath();
     ctx.fill();
     ctx.restore();
+  }
+
+  function renderScreenGrade(width, height, time) {
+    const vignette = ctx.createRadialGradient(width / 2, height * 0.52, height * 0.18, width / 2, height * 0.52, width * 0.68);
+    vignette.addColorStop(0, "rgba(0, 0, 0, 0)");
+    vignette.addColorStop(0.76, "rgba(0, 0, 0, 0.12)");
+    vignette.addColorStop(1, "rgba(0, 0, 0, 0.46)");
+    ctx.fillStyle = vignette;
+    ctx.fillRect(0, 0, width, height);
+
+    ctx.fillStyle = `rgba(85, 214, 255, ${0.025 + Math.sin(time * 0.8) * 0.008})`;
+    ctx.fillRect(0, 0, width, height);
   }
 
   function normalizeAngle(angle) {

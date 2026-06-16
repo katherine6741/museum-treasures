@@ -23,6 +23,8 @@ const checks = [
   ["game.js", "isSpikeExtended"],
   ["game.js", "hasLineOfSight"],
   ["game.js", "drawMapDiamond"],
+  ["game.js", "renderScreenGrade"],
+  ["game.js", "renderFloorPerspective"],
   ["game.js", "guardSpeed"],
   ["game.js", "MuseumTreasures"]
 ];
