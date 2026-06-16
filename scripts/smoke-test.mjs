@@ -22,6 +22,7 @@ const checks = [
   ["game.js", "isLaserActive"],
   ["game.js", "isSpikeExtended"],
   ["game.js", "hasLineOfSight"],
+  ["game.js", "drawMapDiamond"],
   ["game.js", "guardSpeed"],
   ["game.js", "MuseumTreasures"]
 ];

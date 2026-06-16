@@ -521,7 +521,7 @@
     }
 
     drawMapDot(x0, y0, cell, game.exit.x + 0.5, game.exit.y + 0.5, "#55d6ff", 0.72);
-    if (!game.hasDiamond) drawMapDot(x0, y0, cell, game.diamond.x + 0.5, game.diamond.y + 0.5, "#ffd166", 0.82 + Math.sin(time * 5) * 0.08);
+    if (!game.hasDiamond) drawMapDiamond(x0, y0, cell, game.diamond.x + 0.5, game.diamond.y + 0.5, time);
     for (const guard of game.guards) drawMapDot(x0, y0, cell, guard.x, guard.y, guard.chase ? "#ff2f5f" : "#ffffff", 0.62);
     drawMapDot(x0, y0, cell, game.player.x, game.player.y, "#45e394", 0.78);
   }
@@ -538,6 +538,36 @@
     ctx.strokeStyle = "rgba(5, 10, 20, 0.75)";
     ctx.lineWidth = Math.max(1, cell * 0.12);
     ctx.stroke();
+    ctx.restore();
+  }
+
+  function drawMapDiamond(x0, y0, cell, x, y, time) {
+    const centerX = x0 + x * cell;
+    const centerY = y0 + y * cell;
+    const size = Math.max(5, cell * (1 + Math.sin(time * 5) * 0.06));
+
+    ctx.save();
+    ctx.translate(centerX, centerY);
+    ctx.fillStyle = "rgba(255, 209, 102, 0.95)";
+    ctx.strokeStyle = "rgba(5, 10, 20, 0.78)";
+    ctx.lineWidth = Math.max(1, cell * 0.12);
+    ctx.beginPath();
+    ctx.moveTo(0, -size);
+    ctx.lineTo(size * 0.78, -size * 0.18);
+    ctx.lineTo(0, size);
+    ctx.lineTo(-size * 0.78, -size * 0.18);
+    ctx.closePath();
+    ctx.fill();
+    ctx.stroke();
+
+    ctx.fillStyle = "rgba(255, 255, 255, 0.48)";
+    ctx.beginPath();
+    ctx.moveTo(0, -size * 0.72);
+    ctx.lineTo(size * 0.3, -size * 0.14);
+    ctx.lineTo(0, size * 0.22);
+    ctx.lineTo(-size * 0.3, -size * 0.14);
+    ctx.closePath();
+    ctx.fill();
     ctx.restore();
   }
 
