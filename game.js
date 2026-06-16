@@ -244,11 +244,11 @@
     const keyboardForward = (keys.has("w") || keys.has("arrowup") ? -1 : 0) + (keys.has("s") || keys.has("arrowdown") ? 1 : 0);
     const keyboardStrafe = (keys.has("d") ? 1 : 0) + (keys.has("a") ? -1 : 0);
     const keyboardTurn = (keys.has("arrowright") ? 1 : 0) + (keys.has("arrowleft") ? -1 : 0);
-    const keyboardPitch = (keys.has("e") ? -1 : 0) + (keys.has("q") ? 1 : 0);
+    const keyboardPitch = (keys.has("q") ? 1 : 0) + (keys.has("e") ? -1 : 0);
     const forwardInput = Math.abs(moveStick.y) > 0.05 ? moveStick.y : keyboardForward;
     const strafeInput = Math.abs(moveStick.x) > 0.05 ? moveStick.x : keyboardStrafe;
     const turnInput = Math.abs(lookStick.x) > 0.05 ? lookStick.x : keyboardTurn;
-    const pitchInput = Math.abs(lookStick.y) > 0.05 ? lookStick.y : keyboardPitch;
+    const pitchInput = Math.abs(lookStick.y) > 0.05 ? -lookStick.y : keyboardPitch;
     const speedModifier = currentWasteHazard() ? 0.5 : 1;
     const forwardAmount = -forwardInput * BASE_SPEED * speedModifier * dt;
     const strafeAmount = strafeInput * BASE_SPEED * speedModifier * dt;

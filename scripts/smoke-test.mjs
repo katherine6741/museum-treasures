@@ -18,6 +18,7 @@ const checks = [
   ["game.js", "hasDiamond"],
   ["game.js", "escapeTime"],
   ["game.js", "LOOK_PITCH_SPEED"],
+  ["game.js", "-lookStick.y"],
   ["game.js", "isLaserActive"],
   ["game.js", "isSpikeExtended"],
   ["game.js", "hasLineOfSight"],
