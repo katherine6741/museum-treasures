@@ -7,6 +7,7 @@
   const TURN_SPEED = 2.45;
   const LOOK_PITCH_SPEED = 1.45;
   const ESCAPE_TIME_LIMIT = 45;
+  const CAUGHT_ANIMATION_DURATION = 1.8;
   const FOV = Math.PI / 3;
   const MAX_RAY_DISTANCE = 18;
 
@@ -143,6 +144,8 @@
       hasDiamond: false,
       escapeTime: ESCAPE_TIME_LIMIT,
       state: "ready",
+      caughtTime: 0,
+      caughtReason: "",
       hurtCooldown: 0,
       wasteTick: 0,
       hazards: config.hazards.map((hazard) => ({ ...hazard, lastHit: -99 })),
@@ -193,6 +196,14 @@
     syncHud();
   }
 
+  function triggerCaughtAnimation(reason) {
+    game.state = "caught";
+    game.caughtTime = 0;
+    game.caughtReason = reason;
+    game.escapeTime = 0;
+    syncHud();
+  }
+
   function syncHud() {
     hearts.textContent = Array.from({ length: 3 }, (_, index) => index < game.playerHearts ? "❤️" : "♡").join(" ");
     levelName.textContent = game.config.label;
@@ -205,6 +216,7 @@
     if (game.state === "ready") return "Choose a difficulty";
     if (game.state === "won") return "Escaped with the diamond";
     if (game.state === "lost") return "Heist failed";
+    if (game.state === "caught") return "Caught by museum security";
     if (game.hasDiamond) return "Run to the exit";
     return "Find the center diamond";
   }
@@ -691,6 +703,69 @@
 
     ctx.fillStyle = `rgba(85, 214, 255, ${0.025 + Math.sin(time * 0.8) * 0.008})`;
     ctx.fillRect(0, 0, width, height);
+
+    if (game.state === "caught") {
+      renderCaughtCaptureOverlay(width, height, time);
+    }
+  }
+
+  function renderCaughtCaptureOverlay(width, height, time) {
+    const progress = clamp(game.caughtTime / CAUGHT_ANIMATION_DURATION, 0, 1);
+    const pulse = 0.45 + Math.sin(time * 18) * 0.18;
+    const sideCover = width * progress * 0.32;
+    const topCover = height * progress * 0.16;
+
+    ctx.save();
+    ctx.fillStyle = `rgba(255, 47, 95, ${0.16 + progress * 0.28 + pulse * 0.08})`;
+    ctx.fillRect(0, 0, width, height);
+
+    ctx.fillStyle = `rgba(3, 6, 12, ${0.56 + progress * 0.28})`;
+    ctx.fillRect(0, 0, sideCover, height);
+    ctx.fillRect(width - sideCover, 0, sideCover, height);
+    ctx.fillRect(0, 0, width, topCover);
+    ctx.fillRect(0, height - topCover, width, topCover);
+
+    const scanY = height * (0.24 + progress * 0.48);
+    const scan = ctx.createLinearGradient(0, scanY - height * 0.05, 0, scanY + height * 0.05);
+    scan.addColorStop(0, "rgba(255, 47, 95, 0)");
+    scan.addColorStop(0.5, "rgba(255, 47, 95, 0.42)");
+    scan.addColorStop(1, "rgba(255, 47, 95, 0)");
+    ctx.fillStyle = scan;
+    ctx.fillRect(0, scanY - height * 0.06, width, height * 0.12);
+
+    drawGuardSilhouette(width * 0.5, height * (0.62 - progress * 0.08), height * (0.26 + progress * 0.22), progress);
+
+    ctx.globalAlpha = 0.72 + progress * 0.28;
+    ctx.fillStyle = "#ffd6df";
+    ctx.font = `${Math.max(18, height * 0.035)}px Inter, system-ui, sans-serif`;
+    ctx.textAlign = "center";
+    ctx.textBaseline = "middle";
+    ctx.fillText("SECURITY LOCKDOWN", width / 2, height * 0.24);
+    ctx.restore();
+  }
+
+  function drawGuardSilhouette(x, y, size, progress) {
+    ctx.save();
+    ctx.translate(x, y);
+    ctx.globalAlpha = 0.72 + progress * 0.22;
+    ctx.fillStyle = "rgba(3, 6, 12, 0.92)";
+
+    ctx.beginPath();
+    ctx.arc(0, -size * 0.48, size * 0.16, 0, Math.PI * 2);
+    ctx.fill();
+
+    ctx.fillRect(-size * 0.18, -size * 0.32, size * 0.36, size * 0.5);
+
+    ctx.strokeStyle = "rgba(255, 214, 223, 0.52)";
+    ctx.lineWidth = Math.max(3, size * 0.035);
+    ctx.lineCap = "round";
+    ctx.beginPath();
+    ctx.moveTo(-size * 0.15, -size * 0.2);
+    ctx.lineTo(-size * (0.44 + progress * 0.16), size * 0.03);
+    ctx.moveTo(size * 0.15, -size * 0.2);
+    ctx.lineTo(size * (0.44 + progress * 0.16), size * 0.03);
+    ctx.stroke();
+    ctx.restore();
   }
 
   function normalizeAngle(angle) {
@@ -704,6 +779,15 @@
   }
 
   function update(dt, time) {
+    if (game.state === "caught") {
+      game.caughtTime += dt;
+      if (game.caughtTime >= CAUGHT_ANIMATION_DURATION) {
+        endGame("Game Over", game.caughtReason);
+      } else {
+        syncHud();
+      }
+      return;
+    }
     if (game.state !== "playing") return;
     game.hurtCooldown = Math.max(0, game.hurtCooldown - dt);
     updatePlayer(dt, time);
@@ -713,7 +797,7 @@
     if (game.hasDiamond) {
       game.escapeTime -= dt;
       if (game.escapeTime <= 0) {
-        endGame("Game Over", "The alarm timer reached zero before you escaped.");
+        triggerCaughtAnimation("The alarm timer reached zero, and museum security caught you before you escaped.");
       }
     }
     syncHud();
