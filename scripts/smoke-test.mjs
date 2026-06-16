@@ -10,12 +10,14 @@ const requiredFiles = [
 
 const checks = [
   ["index.html", "gameCanvas"],
-  ["index.html", "joystick"],
+  ["index.html", "moveJoystick"],
+  ["index.html", "lookJoystick"],
   ["style.css", "touch-action: none"],
   ["controls.js", "TouchJoystick"],
   ["game.js", "playerHearts"],
   ["game.js", "hasDiamond"],
   ["game.js", "escapeTime"],
+  ["game.js", "LOOK_PITCH_SPEED"],
   ["game.js", "isLaserActive"],
   ["game.js", "isSpikeExtended"],
   ["game.js", "hasLineOfSight"],

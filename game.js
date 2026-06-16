@@ -5,6 +5,7 @@
   const PLAYER_RADIUS = 0.18;
   const BASE_SPEED = 2.35;
   const TURN_SPEED = 2.45;
+  const LOOK_PITCH_SPEED = 1.45;
   const FOV = Math.PI / 3;
   const MAX_RAY_DISTANCE = 18;
 
@@ -111,9 +112,13 @@
   const startButton = document.getElementById("startButton");
   const restartButton = document.getElementById("restartButton");
   const difficultyButtons = Array.from(document.querySelectorAll(".difficulty"));
-  const joystick = new window.MuseumControls.TouchJoystick(
-    document.getElementById("joystick"),
-    document.getElementById("joystickKnob")
+  const moveJoystick = new window.MuseumControls.TouchJoystick(
+    document.getElementById("moveJoystick"),
+    document.getElementById("moveJoystickKnob")
+  );
+  const lookJoystick = new window.MuseumControls.TouchJoystick(
+    document.getElementById("lookJoystick"),
+    document.getElementById("lookJoystickKnob")
   );
 
   const keys = new Set();
@@ -132,7 +137,7 @@
       height: parsed.height,
       exit: parsed.exit,
       diamond: parsed.diamond,
-      player: { x: parsed.exit.x + 0.5, y: parsed.exit.y + 0.5, angle: 0 },
+      player: { x: parsed.exit.x + 0.5, y: parsed.exit.y + 0.5, angle: 0, pitch: 0 },
       playerHearts: 3,
       hasDiamond: false,
       escapeTime: 20,
@@ -234,16 +239,27 @@
   }
 
   function updatePlayer(dt, time) {
-    const stick = joystick.read();
+    const moveStick = moveJoystick.read();
+    const lookStick = lookJoystick.read();
     const keyboardForward = (keys.has("w") || keys.has("arrowup") ? -1 : 0) + (keys.has("s") || keys.has("arrowdown") ? 1 : 0);
-    const keyboardTurn = (keys.has("d") || keys.has("arrowright") ? 1 : 0) + (keys.has("a") || keys.has("arrowleft") ? -1 : 0);
-    const forwardInput = Math.abs(stick.y) > 0.05 ? stick.y : keyboardForward;
-    const turnInput = Math.abs(stick.x) > 0.05 ? stick.x : keyboardTurn;
+    const keyboardStrafe = (keys.has("d") ? 1 : 0) + (keys.has("a") ? -1 : 0);
+    const keyboardTurn = (keys.has("arrowright") ? 1 : 0) + (keys.has("arrowleft") ? -1 : 0);
+    const keyboardPitch = (keys.has("e") ? -1 : 0) + (keys.has("q") ? 1 : 0);
+    const forwardInput = Math.abs(moveStick.y) > 0.05 ? moveStick.y : keyboardForward;
+    const strafeInput = Math.abs(moveStick.x) > 0.05 ? moveStick.x : keyboardStrafe;
+    const turnInput = Math.abs(lookStick.x) > 0.05 ? lookStick.x : keyboardTurn;
+    const pitchInput = Math.abs(lookStick.y) > 0.05 ? lookStick.y : keyboardPitch;
     const speedModifier = currentWasteHazard() ? 0.5 : 1;
-    const moveAmount = -forwardInput * BASE_SPEED * speedModifier * dt;
+    const forwardAmount = -forwardInput * BASE_SPEED * speedModifier * dt;
+    const strafeAmount = strafeInput * BASE_SPEED * speedModifier * dt;
 
     game.player.angle += turnInput * TURN_SPEED * dt;
-    tryMove(game.player, Math.cos(game.player.angle) * moveAmount, Math.sin(game.player.angle) * moveAmount);
+    game.player.pitch = clamp(game.player.pitch + pitchInput * LOOK_PITCH_SPEED * dt, -0.34, 0.34);
+    tryMove(
+      game.player,
+      Math.cos(game.player.angle) * forwardAmount + Math.cos(game.player.angle + Math.PI / 2) * strafeAmount,
+      Math.sin(game.player.angle) * forwardAmount + Math.sin(game.player.angle + Math.PI / 2) * strafeAmount
+    );
 
     if (distanceToTile(game.player, game.diamond) < 0.48 && !game.hasDiamond) {
       game.hasDiamond = true;
@@ -357,7 +373,7 @@
     resizeCanvas();
     const width = canvas.width;
     const height = canvas.height;
-    const horizon = height * 0.48;
+    const horizon = height * (0.48 + game.player.pitch);
 
     const sky = ctx.createLinearGradient(0, 0, 0, horizon);
     sky.addColorStop(0, "#101b33");
@@ -490,7 +506,7 @@
     const size = Math.min(canvas.width * 0.2, 168);
     const pad = 16 * (window.devicePixelRatio || 1);
     const cell = size / Math.max(game.width, game.height);
-    const x0 = canvas.width - size - pad;
+    const x0 = (canvas.width - size) / 2;
     const y0 = canvas.height - size - pad;
 
     ctx.fillStyle = "rgba(5, 10, 20, 0.62)";
@@ -519,6 +535,10 @@
     while (angle < -Math.PI) angle += Math.PI * 2;
     while (angle > Math.PI) angle -= Math.PI * 2;
     return angle;
+  }
+
+  function clamp(value, min, max) {
+    return Math.max(min, Math.min(max, value));
   }
 
   function update(dt, time) {
