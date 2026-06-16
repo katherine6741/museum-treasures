@@ -1,0 +1,10 @@
+{
+  "name": "museum-treasures",
+  "version": "1.0.0",
+  "private": true,
+  "description": "A full-screen HTML5 3D museum maze game for iPad Safari.",
+  "scripts": {
+    "test": "node scripts/smoke-test.mjs",
+    "start": "node scripts/local-server.mjs"
+  }
+}

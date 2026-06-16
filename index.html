@@ -1,0 +1,56 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover, user-scalable=no">
+    <meta name="theme-color" content="#09111f">
+    <title>Museum Treasures</title>
+    <link rel="stylesheet" href="style.css">
+  </head>
+  <body>
+    <main id="gameShell" aria-label="Museum Treasures game">
+      <canvas id="gameCanvas" aria-label="3D museum maze view"></canvas>
+
+      <section id="hud" aria-label="Game status">
+        <div class="brand">
+          <span class="title">Museum Treasures</span>
+          <span id="stateLabel" class="state-label">Choose a difficulty</span>
+        </div>
+        <div class="stats">
+          <span id="hearts" aria-label="Player hearts">❤️ ❤️ ❤️</span>
+          <span id="alarm" class="alarm hidden" aria-live="polite">ALARM 20.00</span>
+          <span id="levelName">Easy</span>
+        </div>
+      </section>
+
+      <section id="startOverlay" class="panel" aria-label="Start menu">
+        <h1>Museum Treasures</h1>
+        <p>Find the diamond, trigger the alarm, and escape before the guards catch you.</p>
+        <div class="difficulty-row" aria-label="Difficulty">
+          <button class="difficulty selected" data-level="easy">Easy</button>
+          <button class="difficulty" data-level="medium">Medium</button>
+          <button class="difficulty" data-level="hard">Hard</button>
+        </div>
+        <button id="startButton" class="primary-button">Start Heist</button>
+      </section>
+
+      <section id="messageOverlay" class="panel hidden" aria-live="assertive">
+        <h2 id="messageTitle">Game Over</h2>
+        <p id="messageText">Try again.</p>
+        <button id="restartButton" class="primary-button">Play Again</button>
+      </section>
+
+      <div id="joystick" aria-label="Movement joystick">
+        <div id="joystickKnob"></div>
+      </div>
+
+      <div id="actionHints" aria-hidden="true">
+        <span>Diamond: center gallery</span>
+        <span>Exit: blue gate</span>
+      </div>
+    </main>
+
+    <script src="controls.js"></script>
+    <script src="game.js"></script>
+  </body>
+</html>
