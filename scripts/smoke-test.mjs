@@ -38,6 +38,10 @@ const checks = [
   ["game.js", "renderGallerySignage"],
   ["game.js", "drawMuseumDisplayCase"],
   ["game.js", "drawMuseumStatue"],
+  ["game.js", "drawExitSign"],
+  ["game.js", "drawExitDirectorySign"],
+  ["game.js", "exit-sign"],
+  ["game.js", "EXIT"],
   ["game.js", "exhibits"],
   ["game.js", "guardSpeed"],
   ["game.js", "MuseumTreasures"]

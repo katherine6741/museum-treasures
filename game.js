@@ -700,6 +700,7 @@
     const objects = [];
     if (!game.hasDiamond) objects.push({ type: "diamond", x: game.diamond.x + 0.5, y: game.diamond.y + 0.5 });
     objects.push({ type: "exit", x: game.exit.x + 0.5, y: game.exit.y + 0.5 });
+    objects.push({ type: "exit-sign", x: game.exit.x + 1.35, y: game.exit.y + 0.5 });
     for (const hazard of game.hazards) objects.push({ ...hazard, x: hazard.x + 0.5, y: hazard.y + 0.5 });
     for (const exhibit of game.exhibits) objects.push(exhibit);
     for (const guard of game.guards) objects.push({ type: guard.chase ? "guard-alert" : "guard", x: guard.x, y: guard.y });
@@ -722,6 +723,7 @@
 
   function objectScale(type) {
     if (type === "exit") return 0.65;
+    if (type === "exit-sign") return 0.22;
     if (type === "laser") return 0.85;
     if (type === "waste" || type === "spike") return 0.5;
     if (type === "display-case") return 0.46;
@@ -751,6 +753,9 @@
       ctx.strokeStyle = "#55d6ff";
       ctx.lineWidth = Math.max(3, size * 0.04);
       ctx.strokeRect(-size * 0.36, -size * 0.9, size * 0.72, size * 1.2);
+      drawExitSign(size);
+    } else if (object.type === "exit-sign") {
+      drawExitDirectorySign(size);
     } else if (object.type === "laser") {
       ctx.globalAlpha = isLaserActive(time) ? 1 : 0.22;
       ctx.strokeStyle = "#ff2f5f";
@@ -798,6 +803,71 @@
     ctx.beginPath();
     ctx.arc(x, y, radius, 0, Math.PI * 2);
     ctx.fill();
+  }
+
+  function drawExitSign(size) {
+    const signWidth = size * 0.64;
+    const signHeight = size * 0.16;
+    const signY = -size * 0.98;
+
+    ctx.save();
+    ctx.shadowColor = "rgba(85, 214, 255, 0.9)";
+    ctx.shadowBlur = size * 0.08;
+    ctx.fillStyle = "rgba(3, 10, 18, 0.82)";
+    ctx.fillRect(-signWidth / 2, signY, signWidth, signHeight);
+    ctx.strokeStyle = "rgba(85, 214, 255, 0.92)";
+    ctx.lineWidth = Math.max(2, size * 0.018);
+    ctx.strokeRect(-signWidth / 2, signY, signWidth, signHeight);
+
+    ctx.fillStyle = "#dff8ff";
+    ctx.font = `${Math.max(10, size * 0.11)}px Inter, system-ui, sans-serif`;
+    ctx.textAlign = "center";
+    ctx.textBaseline = "middle";
+    ctx.fillText("EXIT", 0, signY + signHeight * 0.54);
+
+    ctx.strokeStyle = "rgba(85, 214, 255, 0.62)";
+    ctx.lineWidth = Math.max(2, size * 0.018);
+    ctx.beginPath();
+    ctx.moveTo(-size * 0.26, size * 0.36);
+    ctx.lineTo(size * 0.26, size * 0.36);
+    ctx.moveTo(size * 0.16, size * 0.28);
+    ctx.lineTo(size * 0.28, size * 0.36);
+    ctx.lineTo(size * 0.16, size * 0.44);
+    ctx.stroke();
+    ctx.restore();
+  }
+
+  function drawExitDirectorySign(size) {
+    drawGlow(0, -size * 0.38, size * 0.72, "rgba(85, 214, 255, 0.2)");
+    ctx.save();
+    ctx.shadowColor = "rgba(85, 214, 255, 0.72)";
+    ctx.shadowBlur = size * 0.08;
+
+    ctx.fillStyle = "rgba(3, 10, 18, 0.86)";
+    ctx.fillRect(-size * 0.38, -size * 0.68, size * 0.76, size * 0.24);
+    ctx.strokeStyle = "rgba(85, 214, 255, 0.9)";
+    ctx.lineWidth = Math.max(2, size * 0.02);
+    ctx.strokeRect(-size * 0.38, -size * 0.68, size * 0.76, size * 0.24);
+
+    ctx.fillStyle = "#dff8ff";
+    ctx.font = `${Math.max(10, size * 0.12)}px Inter, system-ui, sans-serif`;
+    ctx.textAlign = "center";
+    ctx.textBaseline = "middle";
+    ctx.fillText("EXIT", 0, -size * 0.55);
+
+    ctx.strokeStyle = "rgba(85, 214, 255, 0.78)";
+    ctx.lineWidth = Math.max(2, size * 0.025);
+    ctx.beginPath();
+    ctx.moveTo(-size * 0.18, -size * 0.24);
+    ctx.lineTo(size * 0.14, -size * 0.24);
+    ctx.lineTo(size * 0.06, -size * 0.32);
+    ctx.moveTo(size * 0.14, -size * 0.24);
+    ctx.lineTo(size * 0.06, -size * 0.16);
+    ctx.stroke();
+
+    ctx.fillStyle = "rgba(85, 214, 255, 0.18)";
+    ctx.fillRect(-size * 0.28, -size * 0.06, size * 0.56, size * 0.08);
+    ctx.restore();
   }
 
   function drawMuseumDisplayCase(size, time) {
