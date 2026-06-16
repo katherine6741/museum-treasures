@@ -492,17 +492,17 @@
 
   function renderMuseumBackdrop(width, height, horizon, time) {
     const ceiling = ctx.createLinearGradient(0, 0, 0, horizon);
-    ceiling.addColorStop(0, "#050a12");
-    ceiling.addColorStop(0.42, "#101d33");
-    ceiling.addColorStop(1, "#284466");
+    ceiling.addColorStop(0, "#03060b");
+    ceiling.addColorStop(0.48, "#0b1320");
+    ceiling.addColorStop(1, "#1a2a3a");
     ctx.fillStyle = ceiling;
     ctx.fillRect(0, 0, width, horizon);
 
     const floor = ctx.createLinearGradient(0, horizon, 0, height);
-    floor.addColorStop(0, "#33405a");
-    floor.addColorStop(0.28, "#182338");
-    floor.addColorStop(0.72, "#090d16");
-    floor.addColorStop(1, "#03050a");
+    floor.addColorStop(0, "#343842");
+    floor.addColorStop(0.24, "#242834");
+    floor.addColorStop(0.62, "#121720");
+    floor.addColorStop(1, "#06080d");
     ctx.fillStyle = floor;
     ctx.fillRect(0, horizon, width, height - horizon);
 
@@ -519,7 +519,7 @@
       const y = horizon * 0.34;
       const radius = width * 0.12;
       const glow = ctx.createRadialGradient(x, y, 0, x, y, radius);
-      glow.addColorStop(0, "rgba(255, 209, 102, 0.12)");
+      glow.addColorStop(0, "rgba(255, 218, 148, 0.08)");
       glow.addColorStop(1, "rgba(255, 209, 102, 0)");
       ctx.fillStyle = glow;
       ctx.fillRect(x - radius, y - radius, radius * 2, radius * 2);
@@ -551,9 +551,9 @@
 
   function renderFloorPerspective(width, height, horizon) {
     ctx.save();
-    ctx.globalAlpha = 0.24;
-    ctx.strokeStyle = "rgba(178, 205, 226, 0.34)";
-    ctx.lineWidth = Math.max(1, width * 0.0012);
+    ctx.globalAlpha = 0.2;
+    ctx.strokeStyle = "rgba(210, 222, 232, 0.24)";
+    ctx.lineWidth = Math.max(1, width * 0.001);
 
     const centerX = width / 2;
     for (let i = -7; i <= 7; i += 1) {
@@ -567,7 +567,7 @@
     for (let i = 1; i <= 8; i += 1) {
       const t = i / 8;
       const y = horizon + (height - horizon) * (t * t);
-      ctx.globalAlpha = 0.2 + t * 0.14;
+      ctx.globalAlpha = 0.12 + t * 0.16;
       ctx.beginPath();
       ctx.moveTo(0, y);
       ctx.lineTo(width, y);
@@ -579,14 +579,15 @@
   function renderPolishedFloorSheen(width, height, horizon, time) {
     ctx.save();
     const reflection = ctx.createLinearGradient(0, horizon, 0, height);
-    reflection.addColorStop(0, "rgba(255, 209, 102, 0.09)");
-    reflection.addColorStop(0.36, "rgba(85, 214, 255, 0.07)");
+    reflection.addColorStop(0, "rgba(255, 222, 166, 0.12)");
+    reflection.addColorStop(0.34, "rgba(191, 208, 224, 0.08)");
+    reflection.addColorStop(0.58, "rgba(78, 93, 110, 0.05)");
     reflection.addColorStop(1, "rgba(255, 255, 255, 0)");
     ctx.fillStyle = reflection;
     ctx.fillRect(0, horizon, width, height - horizon);
 
-    ctx.globalAlpha = 0.12;
-    ctx.strokeStyle = "rgba(255, 255, 255, 0.55)";
+    ctx.globalAlpha = 0.1;
+    ctx.strokeStyle = "rgba(255, 238, 204, 0.42)";
     ctx.lineWidth = Math.max(1, width * 0.0008);
     for (let i = 0; i < 7; i += 1) {
       const y = horizon + (height - horizon) * (0.18 + i * 0.1);
@@ -596,6 +597,12 @@
       ctx.quadraticCurveTo(width * 0.5, y + height * 0.018, width * 0.82 - offset, y);
       ctx.stroke();
     }
+
+    const warmPool = ctx.createRadialGradient(width * 0.5, horizon + (height - horizon) * 0.18, 0, width * 0.5, horizon + (height - horizon) * 0.18, width * 0.38);
+    warmPool.addColorStop(0, "rgba(255, 209, 102, 0.08)");
+    warmPool.addColorStop(1, "rgba(255, 209, 102, 0)");
+    ctx.fillStyle = warmPool;
+    ctx.fillRect(0, horizon, width, height - horizon);
     ctx.restore();
   }
 
