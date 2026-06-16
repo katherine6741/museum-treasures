@@ -503,7 +503,7 @@
   }
 
   function renderMinimap(time) {
-    const size = Math.min(canvas.width * 0.2, 168);
+    const size = Math.min(canvas.width * 0.22, 260);
     const pixelRatio = window.devicePixelRatio || 1;
     const pad = 16 * pixelRatio;
     const bottomLift = 76 * pixelRatio;
@@ -511,26 +511,34 @@
     const x0 = (canvas.width - size) / 2;
     const y0 = canvas.height - size - pad - bottomLift;
 
-    ctx.fillStyle = "rgba(5, 10, 20, 0.62)";
-    ctx.fillRect(x0 - 8, y0 - 8, size + 16, size + 16);
+    ctx.fillStyle = "rgba(5, 10, 20, 0.72)";
+    ctx.fillRect(x0 - 10, y0 - 10, size + 20, size + 20);
     for (let y = 0; y < game.height; y += 1) {
       for (let x = 0; x < game.width; x += 1) {
-        ctx.fillStyle = game.map[y][x] ? "rgba(255, 255, 255, 0.3)" : "rgba(255, 255, 255, 0.06)";
-        ctx.fillRect(x0 + x * cell, y0 + y * cell, cell - 1, cell - 1);
+        ctx.fillStyle = game.map[y][x] ? "rgba(8, 15, 29, 0.88)" : "rgba(128, 160, 190, 0.34)";
+        ctx.fillRect(x0 + x * cell, y0 + y * cell, Math.max(1, cell - 1), Math.max(1, cell - 1));
       }
     }
 
-    drawMapDot(x0, y0, cell, game.exit.x + 0.5, game.exit.y + 0.5, "#55d6ff", 2.3);
-    if (!game.hasDiamond) drawMapDot(x0, y0, cell, game.diamond.x + 0.5, game.diamond.y + 0.5, "#ffd166", 2.4 + Math.sin(time * 5) * 0.5);
-    for (const guard of game.guards) drawMapDot(x0, y0, cell, guard.x, guard.y, guard.chase ? "#ff2f5f" : "#ffffff", 2);
-    drawMapDot(x0, y0, cell, game.player.x, game.player.y, "#45e394", 2.4);
+    drawMapDot(x0, y0, cell, game.exit.x + 0.5, game.exit.y + 0.5, "#55d6ff", 0.72);
+    if (!game.hasDiamond) drawMapDot(x0, y0, cell, game.diamond.x + 0.5, game.diamond.y + 0.5, "#ffd166", 0.82 + Math.sin(time * 5) * 0.08);
+    for (const guard of game.guards) drawMapDot(x0, y0, cell, guard.x, guard.y, guard.chase ? "#ff2f5f" : "#ffffff", 0.62);
+    drawMapDot(x0, y0, cell, game.player.x, game.player.y, "#45e394", 0.78);
   }
 
   function drawMapDot(x0, y0, cell, x, y, color, radius) {
+    const dotRadius = Math.max(2.5, cell * radius);
+    ctx.save();
     ctx.fillStyle = color;
+    ctx.globalAlpha = 0.92;
     ctx.beginPath();
-    ctx.arc(x0 + x * cell, y0 + y * cell, Math.max(2, cell * radius), 0, Math.PI * 2);
+    ctx.arc(x0 + x * cell, y0 + y * cell, dotRadius, 0, Math.PI * 2);
     ctx.fill();
+    ctx.globalAlpha = 1;
+    ctx.strokeStyle = "rgba(5, 10, 20, 0.75)";
+    ctx.lineWidth = Math.max(1, cell * 0.12);
+    ctx.stroke();
+    ctx.restore();
   }
 
   function normalizeAngle(angle) {
