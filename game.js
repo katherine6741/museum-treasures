@@ -8,6 +8,7 @@
   const LOOK_PITCH_SPEED = 1.45;
   const ESCAPE_TIME_LIMIT = 45;
   const CAUGHT_ANIMATION_DURATION = 1.8;
+  const URGENT_ALARM_THRESHOLD = 10;
   const FOV = Math.PI / 3;
   const MAX_RAY_DISTANCE = 18;
 
@@ -127,6 +128,9 @@
   let selectedLevel = "easy";
   let lastFrame = performance.now();
   let game = createInitialGame(selectedLevel);
+  let audioContext = null;
+  let masterGain = null;
+  let nextAlarmBeepAt = 0;
 
   function createInitialGame(levelKey) {
     const config = LEVELS[levelKey];
@@ -181,6 +185,8 @@
   }
 
   function startGame() {
+    prepareAudio();
+    stopUrgentAlarm();
     game = createInitialGame(selectedLevel);
     game.state = "playing";
     startOverlay.classList.add("hidden");
@@ -189,6 +195,7 @@
   }
 
   function endGame(title, text) {
+    stopUrgentAlarm();
     game.state = title === "Treasure Escaped" ? "won" : "lost";
     messageTitle.textContent = title;
     messageText.textContent = text;
@@ -197,6 +204,7 @@
   }
 
   function triggerCaughtAnimation(reason) {
+    stopUrgentAlarm();
     game.state = "caught";
     game.caughtTime = 0;
     game.caughtReason = reason;
@@ -210,6 +218,62 @@
     alarm.textContent = `ALARM ${Math.max(0, game.escapeTime).toFixed(2)}`;
     alarm.classList.toggle("hidden", !game.hasDiamond);
     stateLabel.textContent = getStateText();
+  }
+
+  function prepareAudio() {
+    const AudioEngine = window.AudioContext || window.webkitAudioContext;
+    if (!AudioEngine) return;
+    if (!audioContext) {
+      audioContext = new AudioEngine();
+      masterGain = audioContext.createGain();
+      masterGain.gain.value = 0.16;
+      masterGain.connect(audioContext.destination);
+    }
+    if (audioContext.state === "suspended") {
+      audioContext.resume();
+    }
+  }
+
+  function stopUrgentAlarm() {
+    nextAlarmBeepAt = 0;
+  }
+
+  function updateUrgentAlarm(time) {
+    if (!game.hasDiamond || game.escapeTime > URGENT_ALARM_THRESHOLD || game.escapeTime <= 0) {
+      stopUrgentAlarm();
+      return;
+    }
+    if (!audioContext || !masterGain) return;
+    if (audioContext.state === "suspended") {
+      audioContext.resume();
+      return;
+    }
+
+    const interval = game.escapeTime <= 5 ? 0.36 : 0.68;
+    if (time < nextAlarmBeepAt) return;
+    playAlarmBeep(game.escapeTime <= 5);
+    nextAlarmBeepAt = time + interval;
+  }
+
+  function playAlarmBeep(isCritical) {
+    const start = audioContext.currentTime;
+    const duration = isCritical ? 0.16 : 0.2;
+    const frequency = isCritical ? 980 : 760;
+
+    const oscillator = audioContext.createOscillator();
+    const gain = audioContext.createGain();
+    oscillator.type = "square";
+    oscillator.frequency.setValueAtTime(frequency, start);
+    oscillator.frequency.exponentialRampToValueAtTime(frequency * 0.74, start + duration);
+
+    gain.gain.setValueAtTime(0.0001, start);
+    gain.gain.exponentialRampToValueAtTime(isCritical ? 0.22 : 0.16, start + 0.025);
+    gain.gain.exponentialRampToValueAtTime(0.0001, start + duration);
+
+    oscillator.connect(gain);
+    gain.connect(masterGain);
+    oscillator.start(start);
+    oscillator.stop(start + duration + 0.02);
   }
 
   function getStateText() {
@@ -798,8 +862,10 @@
       game.escapeTime -= dt;
       if (game.escapeTime <= 0) {
         triggerCaughtAnimation("The alarm timer reached zero, and museum security caught you before you escaped.");
+        return;
       }
     }
+    updateUrgentAlarm(time);
     syncHud();
   }
 
@@ -823,6 +889,7 @@
 
   startButton.addEventListener("click", startGame);
   restartButton.addEventListener("click", () => {
+    stopUrgentAlarm();
     startOverlay.classList.remove("hidden");
     messageOverlay.classList.add("hidden");
     game = createInitialGame(selectedLevel);
@@ -840,6 +907,7 @@
     selectLevel: (level) => {
       if (!LEVELS[level]) throw new Error(`Unknown level: ${level}`);
       selectedLevel = level;
+      stopUrgentAlarm();
       game = createInitialGame(selectedLevel);
       syncHud();
     }

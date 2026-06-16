@@ -17,6 +17,7 @@ Museum Treasures is a full-screen HTML5 3D maze game built for iPad Safari and G
 - Blinking lasers, toxic waste, retractable spikes, structural dead ends, and patrolling guards.
 - Guard line-of-sight chasing and instant defeat on player collision.
 - Three-heart health system for hazards.
+- Urgent generated alarm beeps during the final 10 seconds after the diamond is taken.
 - GitHub Pages-ready static files with no build step.
 
 ## Files
