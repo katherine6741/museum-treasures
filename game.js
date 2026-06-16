@@ -504,10 +504,12 @@
 
   function renderMinimap(time) {
     const size = Math.min(canvas.width * 0.2, 168);
-    const pad = 16 * (window.devicePixelRatio || 1);
+    const pixelRatio = window.devicePixelRatio || 1;
+    const pad = 16 * pixelRatio;
+    const bottomLift = 76 * pixelRatio;
     const cell = size / Math.max(game.width, game.height);
     const x0 = (canvas.width - size) / 2;
-    const y0 = canvas.height - size - pad;
+    const y0 = canvas.height - size - pad - bottomLift;
 
     ctx.fillStyle = "rgba(5, 10, 20, 0.62)";
     ctx.fillRect(x0 - 8, y0 - 8, size + 16, size + 16);

@@ -192,7 +192,7 @@ button {
 .joystick {
   position: absolute;
   z-index: 5;
-  bottom: max(28px, env(safe-area-inset-bottom));
+  bottom: max(76px, calc(env(safe-area-inset-bottom) + 76px));
   width: 132px;
   height: 132px;
   border: 1px solid rgba(255, 255, 255, 0.2);
@@ -236,7 +236,7 @@ button {
   position: absolute;
   z-index: 4;
   right: max(18px, env(safe-area-inset-right));
-  bottom: max(190px, calc(env(safe-area-inset-bottom) + 190px));
+  bottom: max(280px, calc(env(safe-area-inset-bottom) + 280px));
   display: flex;
   flex-direction: column;
   gap: 5px;
@@ -296,7 +296,7 @@ button {
   }
 
   #actionHints {
-    bottom: max(150px, calc(env(safe-area-inset-bottom) + 150px));
+    bottom: max(240px, calc(env(safe-area-inset-bottom) + 240px));
   }
 
   .panel {
