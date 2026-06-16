@@ -34,6 +34,11 @@ const checks = [
   ["game.js", "renderScreenGrade"],
   ["game.js", "renderFloorPerspective"],
   ["game.js", "renderPolishedFloorSheen"],
+  ["game.js", "renderMuseumWallArtwork"],
+  ["game.js", "renderGallerySignage"],
+  ["game.js", "drawMuseumDisplayCase"],
+  ["game.js", "drawMuseumStatue"],
+  ["game.js", "exhibits"],
   ["game.js", "guardSpeed"],
   ["game.js", "MuseumTreasures"]
 ];

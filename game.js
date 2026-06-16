@@ -33,6 +33,10 @@
         { type: "laser", x: 5, y: 3 },
         { type: "laser", x: 7, y: 7 }
       ],
+      exhibits: [
+        { type: "display-case", x: 9.5, y: 1.5 },
+        { type: "statue", x: 2.5, y: 7.5 }
+      ],
       guards: [{ x: 10.5, y: 9.5, path: [[10.5, 9.5], [8.5, 9.5], [8.5, 7.5]] }]
     },
     medium: {
@@ -58,6 +62,11 @@
         { type: "laser", x: 10, y: 9 },
         { type: "waste", x: 6, y: 7 },
         { type: "waste", x: 11, y: 3 }
+      ],
+      exhibits: [
+        { type: "display-case", x: 7.5, y: 1.5 },
+        { type: "statue", x: 3.5, y: 5.5 },
+        { type: "display-case", x: 11.5, y: 9.5 }
       ],
       guards: [
         { x: 12.5, y: 11.5, path: [[12.5, 11.5], [9.5, 11.5], [9.5, 9.5]] },
@@ -93,6 +102,12 @@
         { type: "spike", x: 3, y: 11 },
         { type: "spike", x: 10, y: 5 },
         { type: "spike", x: 13, y: 12 }
+      ],
+      exhibits: [
+        { type: "display-case", x: 5.5, y: 3.5 },
+        { type: "statue", x: 7.5, y: 7.5 },
+        { type: "display-case", x: 11.5, y: 11.5 },
+        { type: "statue", x: 14.5, y: 7.5 }
       ],
       guards: [
         { x: 13.5, y: 13.5, path: [[13.5, 13.5], [10.5, 13.5], [10.5, 11.5]] },
@@ -153,6 +168,7 @@
       hurtCooldown: 0,
       wasteTick: 0,
       hazards: config.hazards.map((hazard) => ({ ...hazard, lastHit: -99 })),
+      exhibits: config.exhibits.map((exhibit) => ({ ...exhibit })),
       guards: config.guards.map((guard) => ({
         x: guard.x,
         y: guard.y,
@@ -491,6 +507,7 @@
     ctx.fillRect(0, horizon, width, height - horizon);
 
     renderCeilingGlow(width, horizon, time);
+    renderGallerySignage(width, horizon);
     renderFloorPerspective(width, height, horizon);
     renderPolishedFloorSheen(width, height, horizon, time);
   }
@@ -507,6 +524,29 @@
       ctx.fillStyle = glow;
       ctx.fillRect(x - radius, y - radius, radius * 2, radius * 2);
     }
+  }
+
+  function renderGallerySignage(width, horizon) {
+    const signWidth = width * 0.18;
+    const signHeight = Math.max(28, horizon * 0.085);
+    const x = width / 2 - signWidth / 2;
+    const y = horizon * 0.18;
+
+    ctx.save();
+    ctx.fillStyle = "rgba(5, 10, 20, 0.62)";
+    ctx.fillRect(x, y, signWidth, signHeight);
+    ctx.strokeStyle = "rgba(255, 209, 102, 0.44)";
+    ctx.lineWidth = Math.max(1, width * 0.001);
+    ctx.strokeRect(x, y, signWidth, signHeight);
+    ctx.fillStyle = "rgba(255, 227, 154, 0.92)";
+    ctx.font = `${Math.max(10, signHeight * 0.34)}px Inter, system-ui, sans-serif`;
+    ctx.textAlign = "center";
+    ctx.textBaseline = "middle";
+    ctx.fillText("MUSEUM GALLERY", width / 2, y + signHeight * 0.42);
+    ctx.fillStyle = "rgba(218, 239, 255, 0.62)";
+    ctx.font = `${Math.max(8, signHeight * 0.22)}px Inter, system-ui, sans-serif`;
+    ctx.fillText("ANCIENT GEMS", width / 2, y + signHeight * 0.72);
+    ctx.restore();
   }
 
   function renderFloorPerspective(width, height, horizon) {
@@ -591,6 +631,7 @@
       ctx.fillStyle = "rgba(3, 6, 12, 0.22)";
       ctx.fillRect(x, y, width, height);
     }
+    renderMuseumWallArtwork(hit, local, distance, x, y, width, height);
 
     ctx.fillStyle = `rgba(5, 10, 20, ${0.08 + fog * 0.54})`;
     ctx.fillRect(x, y, width, height);
@@ -615,11 +656,45 @@
     return Math.max(0, Math.min(255, Math.floor(value)));
   }
 
+  function renderMuseumWallArtwork(hit, local, distance, x, y, width, height) {
+    if (distance < 1.2 || distance > 9.5) return;
+    const tileX = Math.floor(hit.x);
+    const tileY = Math.floor(hit.y);
+    const hash = Math.abs((tileX * 37 + tileY * 53 + (hit.side === "x" ? 11 : 23)) % 9);
+    if (hash > 2) return;
+    if (local < 0.26 || local > 0.74) return;
+
+    const top = y + height * 0.24;
+    const artHeight = height * 0.23;
+    const isLabelStrip = local > 0.46 && local < 0.54;
+    const palette = hash === 0
+      ? ["rgba(255, 209, 102, 0.82)", "rgba(85, 214, 255, 0.58)"]
+      : hash === 1
+        ? ["rgba(211, 232, 255, 0.72)", "rgba(255, 47, 95, 0.42)"]
+        : ["rgba(181, 255, 216, 0.62)", "rgba(255, 255, 255, 0.36)"];
+
+    ctx.fillStyle = "rgba(12, 8, 4, 0.68)";
+    ctx.fillRect(x, top - artHeight * 0.12, width, artHeight * 1.24);
+    ctx.fillStyle = "rgba(255, 209, 102, 0.26)";
+    ctx.fillRect(x, top - artHeight * 0.08, width, artHeight * 1.16);
+    const art = ctx.createLinearGradient(0, top, 0, top + artHeight);
+    art.addColorStop(0, palette[0]);
+    art.addColorStop(1, palette[1]);
+    ctx.fillStyle = art;
+    ctx.fillRect(x, top, width, artHeight);
+
+    if (isLabelStrip) {
+      ctx.fillStyle = "rgba(255, 246, 215, 0.78)";
+      ctx.fillRect(x, top + artHeight * 1.18, width, Math.max(2, artHeight * 0.08));
+    }
+  }
+
   function renderWorldObjects(depthBuffer, time) {
     const objects = [];
     if (!game.hasDiamond) objects.push({ type: "diamond", x: game.diamond.x + 0.5, y: game.diamond.y + 0.5 });
     objects.push({ type: "exit", x: game.exit.x + 0.5, y: game.exit.y + 0.5 });
     for (const hazard of game.hazards) objects.push({ ...hazard, x: hazard.x + 0.5, y: hazard.y + 0.5 });
+    for (const exhibit of game.exhibits) objects.push(exhibit);
     for (const guard of game.guards) objects.push({ type: guard.chase ? "guard-alert" : "guard", x: guard.x, y: guard.y });
 
     objects.sort((a, b) => Math.hypot(b.x - game.player.x, b.y - game.player.y) - Math.hypot(a.x - game.player.x, a.y - game.player.y));
@@ -642,6 +717,8 @@
     if (type === "exit") return 0.65;
     if (type === "laser") return 0.85;
     if (type === "waste" || type === "spike") return 0.5;
+    if (type === "display-case") return 0.46;
+    if (type === "statue") return 0.58;
     return 0.8;
   }
 
@@ -691,6 +768,10 @@
       for (let i = -1; i <= 1; i += 1) {
         polygon([[i * size * 0.18, size * 0.12], [i * size * 0.18 + size * 0.12, -size * 0.42 * extended], [i * size * 0.18 + size * 0.24, size * 0.12]], false);
       }
+    } else if (object.type === "display-case") {
+      drawMuseumDisplayCase(size, time);
+    } else if (object.type === "statue") {
+      drawMuseumStatue(size);
     } else {
       ctx.fillStyle = object.type === "guard-alert" ? "#ff2f5f" : "#f7f1e3";
       ctx.fillRect(-size * 0.22, -size * 0.68, size * 0.44, size * 0.74);
@@ -710,6 +791,44 @@
     ctx.beginPath();
     ctx.arc(x, y, radius, 0, Math.PI * 2);
     ctx.fill();
+  }
+
+  function drawMuseumDisplayCase(size, time) {
+    drawGlow(0, -size * 0.18, size * 0.58, "rgba(255, 209, 102, 0.16)");
+    ctx.fillStyle = "rgba(8, 15, 29, 0.72)";
+    ctx.fillRect(-size * 0.36, -size * 0.08, size * 0.72, size * 0.18);
+    ctx.fillStyle = "rgba(180, 225, 255, 0.22)";
+    ctx.strokeStyle = "rgba(218, 239, 255, 0.72)";
+    ctx.lineWidth = Math.max(2, size * 0.025);
+    ctx.fillRect(-size * 0.3, -size * 0.54, size * 0.6, size * 0.46);
+    ctx.strokeRect(-size * 0.3, -size * 0.54, size * 0.6, size * 0.46);
+    ctx.fillStyle = "rgba(255, 255, 255, 0.34)";
+    ctx.fillRect(-size * 0.24, -size * 0.5, size * 0.05, size * 0.34);
+    ctx.fillStyle = "#ffd166";
+    ctx.beginPath();
+    ctx.arc(0, -size * 0.3 + Math.sin(time * 1.2) * size * 0.01, size * 0.11, 0, Math.PI * 2);
+    ctx.fill();
+  }
+
+  function drawMuseumStatue(size) {
+    drawGlow(0, -size * 0.22, size * 0.48, "rgba(211, 232, 255, 0.12)");
+    ctx.fillStyle = "#d8e0ea";
+    ctx.strokeStyle = "rgba(5, 10, 20, 0.55)";
+    ctx.lineWidth = Math.max(2, size * 0.025);
+    ctx.beginPath();
+    ctx.arc(0, -size * 0.58, size * 0.12, 0, Math.PI * 2);
+    ctx.fill();
+    ctx.stroke();
+    ctx.beginPath();
+    ctx.moveTo(-size * 0.16, -size * 0.43);
+    ctx.lineTo(size * 0.16, -size * 0.43);
+    ctx.lineTo(size * 0.1, -size * 0.08);
+    ctx.lineTo(-size * 0.1, -size * 0.08);
+    ctx.closePath();
+    ctx.fill();
+    ctx.stroke();
+    ctx.fillStyle = "rgba(255, 255, 255, 0.24)";
+    ctx.fillRect(-size * 0.22, -size * 0.08, size * 0.44, size * 0.16);
   }
 
   function polygon(points, stroke) {
