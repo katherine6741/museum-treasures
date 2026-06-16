@@ -17,6 +17,8 @@ const checks = [
   ["game.js", "playerHearts"],
   ["game.js", "hasDiamond"],
   ["game.js", "escapeTime"],
+  ["game.js", "ESCAPE_TIME_LIMIT = 45"],
+  ["index.html", "ALARM 45.00"],
   ["game.js", "LOOK_PITCH_SPEED"],
   ["game.js", "-lookStick.y"],
   ["game.js", "isLaserActive"],

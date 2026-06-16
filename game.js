@@ -6,6 +6,7 @@
   const BASE_SPEED = 2.35;
   const TURN_SPEED = 2.45;
   const LOOK_PITCH_SPEED = 1.45;
+  const ESCAPE_TIME_LIMIT = 45;
   const FOV = Math.PI / 3;
   const MAX_RAY_DISTANCE = 18;
 
@@ -140,7 +141,7 @@
       player: { x: parsed.exit.x + 0.5, y: parsed.exit.y + 0.5, angle: 0, pitch: 0 },
       playerHearts: 3,
       hasDiamond: false,
-      escapeTime: 20,
+      escapeTime: ESCAPE_TIME_LIMIT,
       state: "ready",
       hurtCooldown: 0,
       wasteTick: 0,
@@ -263,7 +264,7 @@
 
     if (distanceToTile(game.player, game.diamond) < 0.48 && !game.hasDiamond) {
       game.hasDiamond = true;
-      game.escapeTime = 20;
+      game.escapeTime = ESCAPE_TIME_LIMIT;
     }
 
     if (game.hasDiamond && distanceToTile(game.player, game.exit) < 0.55) {

@@ -1,6 +1,6 @@
 # Museum Treasures
 
-Museum Treasures is a full-screen HTML5 3D maze game built for iPad Safari and GitHub Pages. Players explore a museum maze, collect the center diamond, trigger a 20-second alarm, and race back to the blue exit gate while avoiding guards and traps.
+Museum Treasures is a full-screen HTML5 3D maze game built for iPad Safari and GitHub Pages. Players explore a museum maze, collect the center diamond, trigger a 45-second alarm, and race back to the blue exit gate while avoiding guards and traps.
 
 ## How to Play
 
