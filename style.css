@@ -1,7 +1,7 @@
 :root {
   --ink: #eef6ff;
   --muted: #9fb2c8;
-  --panel: rgba(8, 15, 29, 0.82);
+  --panel: rgba(8, 15, 29, 0.78);
   --line: rgba(255, 255, 255, 0.18);
   --gold: #ffd166;
   --danger: #ff2f5f;
@@ -72,13 +72,14 @@ button {
   align-items: center;
   gap: 14px;
   padding: 10px 14px;
-  border: 1px solid rgba(255, 255, 255, 0.24);
+  border: 1px solid rgba(255, 255, 255, 0.28);
   border-radius: 8px;
   background:
-    linear-gradient(135deg, rgba(255, 255, 255, 0.16), rgba(255, 255, 255, 0.04)),
-    rgba(5, 10, 20, 0.68);
-  box-shadow: 0 18px 60px rgba(0, 0, 0, 0.3), inset 0 1px 0 rgba(255, 255, 255, 0.16);
-  backdrop-filter: blur(12px);
+    linear-gradient(135deg, rgba(255, 255, 255, 0.2), rgba(255, 255, 255, 0.035)),
+    linear-gradient(180deg, rgba(255, 209, 102, 0.08), rgba(85, 214, 255, 0.035)),
+    rgba(5, 10, 20, 0.66);
+  box-shadow: 0 18px 60px rgba(0, 0, 0, 0.34), inset 0 1px 0 rgba(255, 255, 255, 0.2);
+  backdrop-filter: blur(18px) saturate(130%);
 }
 
 .brand {
@@ -88,7 +89,8 @@ button {
 }
 
 .title {
-  color: var(--gold);
+  color: #ffe39a;
+  text-shadow: 0 0 16px rgba(255, 209, 102, 0.22);
   font-size: 16px;
   font-weight: 800;
   letter-spacing: 0;
@@ -135,10 +137,11 @@ button {
   border: 1px solid rgba(255, 255, 255, 0.24);
   border-radius: 8px;
   background:
-    linear-gradient(135deg, rgba(255, 255, 255, 0.14), rgba(255, 255, 255, 0.03)),
+    linear-gradient(135deg, rgba(255, 255, 255, 0.18), rgba(255, 255, 255, 0.025)),
+    radial-gradient(circle at 50% 0%, rgba(255, 209, 102, 0.12), transparent 45%),
     var(--panel);
-  box-shadow: 0 30px 110px rgba(0, 0, 0, 0.55), inset 0 1px 0 rgba(255, 255, 255, 0.14);
-  backdrop-filter: blur(16px);
+  box-shadow: 0 30px 110px rgba(0, 0, 0, 0.58), inset 0 1px 0 rgba(255, 255, 255, 0.18);
+  backdrop-filter: blur(20px) saturate(128%);
   text-align: center;
 }
 
@@ -190,9 +193,9 @@ button {
 
 .primary-button {
   width: 100%;
-  background: linear-gradient(135deg, #ffd166, #f7934c);
+  background: linear-gradient(135deg, #ffe39a, #ffd166 48%, #f7934c);
   color: #08101d;
-  box-shadow: 0 16px 34px rgba(247, 147, 76, 0.25);
+  box-shadow: 0 16px 34px rgba(247, 147, 76, 0.28), inset 0 1px 0 rgba(255, 255, 255, 0.45);
 }
 
 .joystick {
@@ -204,10 +207,11 @@ button {
   border: 1px solid rgba(255, 255, 255, 0.28);
   border-radius: 50%;
   background:
-    radial-gradient(circle at 50% 50%, rgba(85, 214, 255, 0.16), rgba(255, 255, 255, 0.04) 58%, rgba(255, 255, 255, 0.09)),
+    radial-gradient(circle at 40% 34%, rgba(255, 255, 255, 0.22), transparent 24%),
+    radial-gradient(circle at 50% 50%, rgba(85, 214, 255, 0.18), rgba(255, 255, 255, 0.04) 58%, rgba(255, 255, 255, 0.1)),
     rgba(255, 255, 255, 0.08);
-  box-shadow: inset 0 0 34px rgba(85, 214, 255, 0.16), 0 18px 46px rgba(0, 0, 0, 0.32);
-  backdrop-filter: blur(10px);
+  box-shadow: inset 0 0 34px rgba(85, 214, 255, 0.18), inset 0 1px 0 rgba(255, 255, 255, 0.2), 0 18px 46px rgba(0, 0, 0, 0.36);
+  backdrop-filter: blur(14px) saturate(130%);
 }
 
 .move-joystick {
@@ -236,8 +240,8 @@ button {
   height: 58px;
   transform: translate(-50%, -50%);
   border-radius: 50%;
-  background: radial-gradient(circle at 35% 30%, #ffffff, #7ee4ff 36%, #2877af 72%, #102d57);
-  box-shadow: 0 10px 24px rgba(0, 0, 0, 0.32), 0 0 28px rgba(85, 214, 255, 0.22);
+  background: radial-gradient(circle at 35% 30%, #ffffff, #9decff 32%, #2877af 70%, #102d57);
+  box-shadow: 0 10px 24px rgba(0, 0, 0, 0.34), 0 0 34px rgba(85, 214, 255, 0.28), inset 0 -8px 16px rgba(3, 6, 12, 0.22);
 }
 
 #actionHints {

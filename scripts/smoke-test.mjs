@@ -33,6 +33,7 @@ const checks = [
   ["game.js", "drawMapDiamond"],
   ["game.js", "renderScreenGrade"],
   ["game.js", "renderFloorPerspective"],
+  ["game.js", "renderPolishedFloorSheen"],
   ["game.js", "guardSpeed"],
   ["game.js", "MuseumTreasures"]
 ];

@@ -476,21 +476,23 @@
 
   function renderMuseumBackdrop(width, height, horizon, time) {
     const ceiling = ctx.createLinearGradient(0, 0, 0, horizon);
-    ceiling.addColorStop(0, "#07111f");
-    ceiling.addColorStop(0.45, "#132542");
-    ceiling.addColorStop(1, "#223c63");
+    ceiling.addColorStop(0, "#050a12");
+    ceiling.addColorStop(0.42, "#101d33");
+    ceiling.addColorStop(1, "#284466");
     ctx.fillStyle = ceiling;
     ctx.fillRect(0, 0, width, horizon);
 
     const floor = ctx.createLinearGradient(0, horizon, 0, height);
-    floor.addColorStop(0, "#26334d");
-    floor.addColorStop(0.42, "#121a2b");
-    floor.addColorStop(1, "#050911");
+    floor.addColorStop(0, "#33405a");
+    floor.addColorStop(0.28, "#182338");
+    floor.addColorStop(0.72, "#090d16");
+    floor.addColorStop(1, "#03050a");
     ctx.fillStyle = floor;
     ctx.fillRect(0, horizon, width, height - horizon);
 
     renderCeilingGlow(width, horizon, time);
     renderFloorPerspective(width, height, horizon);
+    renderPolishedFloorSheen(width, height, horizon, time);
   }
 
   function renderCeilingGlow(width, horizon, time) {
@@ -509,8 +511,8 @@
 
   function renderFloorPerspective(width, height, horizon) {
     ctx.save();
-    ctx.globalAlpha = 0.28;
-    ctx.strokeStyle = "rgba(155, 188, 218, 0.32)";
+    ctx.globalAlpha = 0.24;
+    ctx.strokeStyle = "rgba(178, 205, 226, 0.34)";
     ctx.lineWidth = Math.max(1, width * 0.0012);
 
     const centerX = width / 2;
@@ -534,15 +536,39 @@
     ctx.restore();
   }
 
+  function renderPolishedFloorSheen(width, height, horizon, time) {
+    ctx.save();
+    const reflection = ctx.createLinearGradient(0, horizon, 0, height);
+    reflection.addColorStop(0, "rgba(255, 209, 102, 0.09)");
+    reflection.addColorStop(0.36, "rgba(85, 214, 255, 0.07)");
+    reflection.addColorStop(1, "rgba(255, 255, 255, 0)");
+    ctx.fillStyle = reflection;
+    ctx.fillRect(0, horizon, width, height - horizon);
+
+    ctx.globalAlpha = 0.12;
+    ctx.strokeStyle = "rgba(255, 255, 255, 0.55)";
+    ctx.lineWidth = Math.max(1, width * 0.0008);
+    for (let i = 0; i < 7; i += 1) {
+      const y = horizon + (height - horizon) * (0.18 + i * 0.1);
+      const offset = Math.sin(time * 0.25 + i) * width * 0.012;
+      ctx.beginPath();
+      ctx.moveTo(width * 0.18 + offset, y);
+      ctx.quadraticCurveTo(width * 0.5, y + height * 0.018, width * 0.82 - offset, y);
+      ctx.stroke();
+    }
+    ctx.restore();
+  }
+
   function renderWallColumn(hit, distance, x, y, width, height, time) {
     const fog = clamp(distance / MAX_RAY_DISTANCE, 0, 1);
     const base = Math.max(42, 222 - distance * 27);
     const warm = hit.side === "x";
     const panel = wallPanelFactor(hit);
     const shimmer = Math.sin((hit.x + hit.y) * 5 + time * 0.7) * 4;
+    const marble = Math.sin(hit.x * 13.5 + hit.y * 9.5) * 7 + Math.sin((hit.x - hit.y) * 21) * 3;
     const r = Math.floor((warm ? base * 1.08 : base * 0.68) + panel * 20 + shimmer);
-    const g = Math.floor((warm ? base * 0.82 : base * 0.82) + panel * 16);
-    const b = Math.floor((warm ? base * 0.5 : base * 1.08) + panel * 18);
+    const g = Math.floor((warm ? base * 0.82 : base * 0.82) + panel * 16 + marble);
+    const b = Math.floor((warm ? base * 0.5 : base * 1.08) + panel * 18 + marble * 1.2);
 
     const gradient = ctx.createLinearGradient(0, y, 0, y + height);
     gradient.addColorStop(0, `rgb(${clampColor(r + 22)},${clampColor(g + 22)},${clampColor(b + 22)})`);
@@ -554,12 +580,16 @@
 
     const local = wallTextureCoordinate(hit);
     if (local < 0.08 || local > 0.92) {
-      ctx.fillStyle = "rgba(255, 209, 102, 0.16)";
+      ctx.fillStyle = "rgba(255, 209, 102, 0.2)";
       ctx.fillRect(x, y, width, height);
     }
     if (local > 0.47 && local < 0.53) {
-      ctx.fillStyle = "rgba(255, 255, 255, 0.06)";
+      ctx.fillStyle = "rgba(255, 255, 255, 0.075)";
       ctx.fillRect(x, y + height * 0.08, width, height * 0.84);
+    }
+    if ((local > 0.18 && local < 0.2) || (local > 0.8 && local < 0.82)) {
+      ctx.fillStyle = "rgba(3, 6, 12, 0.22)";
+      ctx.fillRect(x, y, width, height);
     }
 
     ctx.fillStyle = `rgba(5, 10, 20, ${0.08 + fog * 0.54})`;
@@ -619,14 +649,17 @@
     ctx.save();
     ctx.translate(x, floorY);
     if (object.type === "diamond") {
-      drawGlow(0, -size * 0.16, size * 0.62, "rgba(85, 214, 255, 0.34)");
+      drawGlow(0, -size * 0.16, size * 0.78, "rgba(85, 214, 255, 0.4)");
       ctx.rotate(Math.sin(time * 2.4) * 0.1);
+      ctx.shadowColor = "rgba(85, 214, 255, 0.8)";
+      ctx.shadowBlur = size * 0.12;
       ctx.fillStyle = "#9df3ff";
       ctx.strokeStyle = "#ffffff";
       ctx.lineWidth = Math.max(2, size * 0.03);
       polygon([[0, -size * 0.62], [size * 0.36, -size * 0.18], [0, size * 0.36], [-size * 0.36, -size * 0.18]], true);
       ctx.fillStyle = "rgba(255, 255, 255, 0.72)";
       polygon([[0, -size * 0.5], [size * 0.16, -size * 0.18], [0, 0], [-size * 0.16, -size * 0.18]], true);
+      ctx.shadowBlur = 0;
     } else if (object.type === "exit") {
       drawGlow(0, -size * 0.28, size * 0.82, "rgba(85, 214, 255, 0.24)");
       ctx.fillStyle = "rgba(85, 214, 255, 0.28)";
@@ -697,8 +730,11 @@
     const x0 = (canvas.width - size) / 2;
     const y0 = canvas.height - size - pad - bottomLift;
 
-    ctx.fillStyle = "rgba(5, 10, 20, 0.72)";
+    ctx.fillStyle = "rgba(5, 10, 20, 0.78)";
     ctx.fillRect(x0 - 10, y0 - 10, size + 20, size + 20);
+    ctx.strokeStyle = "rgba(255, 255, 255, 0.2)";
+    ctx.lineWidth = Math.max(1, cell * 0.12);
+    ctx.strokeRect(x0 - 10, y0 - 10, size + 20, size + 20);
     for (let y = 0; y < game.height; y += 1) {
       for (let x = 0; x < game.width; x += 1) {
         ctx.fillStyle = game.map[y][x] ? "rgba(8, 15, 29, 0.88)" : "rgba(128, 160, 190, 0.34)";
@@ -766,6 +802,13 @@
     ctx.fillRect(0, 0, width, height);
 
     ctx.fillStyle = `rgba(85, 214, 255, ${0.025 + Math.sin(time * 0.8) * 0.008})`;
+    ctx.fillRect(0, 0, width, height);
+
+    const highlight = ctx.createLinearGradient(0, 0, width, height);
+    highlight.addColorStop(0, "rgba(255, 255, 255, 0.06)");
+    highlight.addColorStop(0.22, "rgba(255, 255, 255, 0)");
+    highlight.addColorStop(1, "rgba(255, 209, 102, 0.035)");
+    ctx.fillStyle = highlight;
     ctx.fillRect(0, 0, width, height);
 
     if (game.state === "caught") {
