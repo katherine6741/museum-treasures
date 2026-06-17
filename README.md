@@ -4,6 +4,14 @@ Museum Treasures is a browser-based 3D museum maze game designed for the June 20
 
 The project combines game design, spatial reasoning, touch interaction, and AI-assisted development into a playable learning experience for students.
 
+## Live Demo
+
+Play the latest deployed version:
+
+```text
+https://museum-treasures.pages.dev/
+```
+
 ## Project Context
 
 - School project: June 2026 IBL project, St. Stephen's College Preparatory School
@@ -32,6 +40,22 @@ The project combines game design, spatial reasoning, touch interaction, and AI-a
 - Diamond objective, 45-second escape timer, final 10-second alarm sound, and adaptive background music.
 - Minimap with player position and a direction beam showing the player's current facing direction.
 - Static GitHub Pages-friendly structure with no build step required.
+
+## Development Journey
+
+Museum Treasures was developed through an iterative AI-assisted workflow. The project started from a student game concept: a museum treasure escape challenge with a diamond objective, guards, traps, and a time-limited escape. The implementation then evolved through repeated playtesting and refinement.
+
+Key design decisions included:
+
+- Turning the museum idea into a first-person maze so players could feel spatial tension instead of only seeing a flat map.
+- Separating movement and camera controls into left-hand and right-hand joysticks for a more natural iPad experience.
+- Making the minimap more useful by showing the player's current position and facing direction with a beam.
+- Rebalancing difficulty levels so Easy is approachable, Medium adds meaningful traps, and Hard remains challenging but reachable.
+- Improving the museum feeling with exhibit cases, statues, artwork, polished floors, ceiling color treatment, Exit signage, realistic security guards, and infrared-style lasers.
+- Adding audio in stages: alarm beeps for urgency, then adaptive background music, then tuning the sound to remove unwanted drone noise.
+- Keeping the project static and dependency-light so it can run easily in a browser and deploy cleanly to Cloudflare Pages or GitHub Pages.
+
+This process reflects the IBL goal of moving from question and concept to prototype, testing, feedback, and final presentation.
 
 ## Technology
 
@@ -77,13 +101,19 @@ The smoke test checks that required files exist, core gameplay behavior is wired
 
 ## Deployment
 
-This project is a static web game. To deploy with GitHub Pages, push the files to the `main` branch of:
+The current Cloudflare Pages deployment is:
+
+```text
+https://museum-treasures.pages.dev/
+```
+
+This project is a static web game. To deploy with GitHub Pages or another static host, push the files to the `main` branch of:
 
 ```text
 https://github.com/katherine6741/museum-treasures.git
 ```
 
-Then enable GitHub Pages for the repository branch if it is not already enabled.
+Then enable GitHub Pages, Cloudflare Pages, or another static hosting service for the branch.
 
 ## Credits
 
