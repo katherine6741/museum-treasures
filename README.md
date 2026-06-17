@@ -1,12 +1,12 @@
 # Museum Treasures
 
-Museum Treasures is a browser-based 3D museum maze game designed for the June 2026 IBL project at 聖士提反中學附屬小學. Players enter a guarded museum, find the diamond, trigger the alarm, and race back to the exit before time runs out.
+Museum Treasures is a browser-based 3D museum maze game designed for the June 2026 IBL project at St. Stephen's College Preparatory School. Players enter a guarded museum, find the diamond, trigger the alarm, and race back to the exit before time runs out.
 
 The project combines game design, spatial reasoning, touch interaction, and AI-assisted development into a playable learning experience for students.
 
 ## Project Context
 
-- School project: June 2026 IBL project, 聖士提反中學附屬小學
+- School project: June 2026 IBL project, St. Stephen's College Preparatory School
 - Development style: Vibe coding with OpenAI Codex
 - AI token sponsorship: Loretta Hao
 - Technical guidance: Charles Kin Leung
@@ -91,4 +91,4 @@ Museum Treasures was developed as an AI-assisted educational game project.
 - Vibe coding development tool: OpenAI Codex
 - AI token sponsor: Loretta Hao
 - Technical guidance: Charles Kin Leung
-- Educational application: June 2026 IBL project at 聖士提反中學附屬小學
+- Educational application: June 2026 IBL project at St. Stephen's College Preparatory School
