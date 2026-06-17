@@ -13,7 +13,8 @@
   const ESCAPE_TIME_LIMIT = 45;
   const CAUGHT_ANIMATION_DURATION = 1.8;
   const URGENT_ALARM_THRESHOLD = 10;
-  const BACKGROUND_MUSIC_VOLUME = 0.09;
+  const MASTER_VOLUME = 0.28;
+  const BACKGROUND_MUSIC_VOLUME = 0.36;
   const MUSIC_NOTE_SCALE = [196, 233.08, 261.63, 293.66, 349.23, 392];
   const FOV = Math.PI / 3;
   const MAX_RAY_DISTANCE = 18;
@@ -219,12 +220,14 @@
     }
   }
 
-  function startGame() {
-    prepareAudio();
+  async function startGame() {
+    const audioReady = await prepareAudio();
     stopUrgentAlarm();
-    startBackgroundMusic();
     game = createInitialGame(selectedLevel);
     game.state = "playing";
+    if (audioReady) {
+      startBackgroundMusic();
+    }
     startOverlay.classList.add("hidden");
     messageOverlay.classList.add("hidden");
     syncHud();
@@ -258,18 +261,23 @@
     stateLabel.textContent = getStateText();
   }
 
-  function prepareAudio() {
+  async function prepareAudio() {
     const AudioEngine = window.AudioContext || window.webkitAudioContext;
-    if (!AudioEngine) return;
+    if (!AudioEngine) return false;
     if (!audioContext) {
       audioContext = new AudioEngine();
       masterGain = audioContext.createGain();
-      masterGain.gain.value = 0.16;
+      masterGain.gain.value = MASTER_VOLUME;
       masterGain.connect(audioContext.destination);
     }
     if (audioContext.state === "suspended") {
-      audioContext.resume();
+      try {
+        await audioContext.resume();
+      } catch {
+        return false;
+      }
     }
+    return audioContext.state === "running";
   }
 
   function startBackgroundMusic() {
@@ -288,8 +296,8 @@
     filter.frequency.setValueAtTime(860, audioContext.currentTime);
     filter.Q.setValueAtTime(0.7, audioContext.currentTime);
 
-    const padA = createMusicDrone(98, "sine", 0.22);
-    const padB = createMusicDrone(146.83, "triangle", 0.14);
+    const padA = createMusicDrone(98, "sine", 0.34);
+    const padB = createMusicDrone(146.83, "triangle", 0.24);
     padA.connect(filter);
     padB.connect(filter);
     filter.connect(gain);
@@ -298,7 +306,8 @@
     padA.start();
     padB.start();
     backgroundMusic = { gain, drones: [padA, padB] };
-    nextMusicNoteAt = audioContext.currentTime + 0.45;
+    playMusicWakeCue();
+    nextMusicNoteAt = audioContext.currentTime + 0.32;
   }
 
   function createMusicDrone(frequency, type, volume) {
@@ -336,12 +345,17 @@
     const noteIndex = Math.floor((game.player.x * 3 + game.player.y * 5 + now) % MUSIC_NOTE_SCALE.length);
     const frequency = MUSIC_NOTE_SCALE[noteIndex] * (game.hasDiamond ? 1.5 : 1);
     playMusicPulse(frequency, game.hasDiamond);
-    nextMusicNoteAt = now + (game.hasDiamond ? 0.42 : 0.72);
+    nextMusicNoteAt = now + (game.hasDiamond ? 0.36 : 0.58);
   }
 
-  function playMusicPulse(frequency, urgent) {
-    const start = audioContext.currentTime;
-    const duration = urgent ? 0.18 : 0.28;
+  function playMusicWakeCue() {
+    playMusicPulse(392, false, 0.2);
+    playMusicPulse(523.25, false, 0.38);
+  }
+
+  function playMusicPulse(frequency, urgent, delay = 0) {
+    const start = audioContext.currentTime + delay;
+    const duration = urgent ? 0.2 : 0.34;
     const oscillator = audioContext.createOscillator();
     const gain = audioContext.createGain();
     const filter = audioContext.createBiquadFilter();
@@ -352,7 +366,7 @@
     filter.type = "lowpass";
     filter.frequency.setValueAtTime(urgent ? 1320 : 920, start);
     gain.gain.setValueAtTime(0.0001, start);
-    gain.gain.exponentialRampToValueAtTime(urgent ? 0.13 : 0.085, start + 0.035);
+    gain.gain.exponentialRampToValueAtTime(urgent ? 0.22 : 0.18, start + 0.035);
     gain.gain.exponentialRampToValueAtTime(0.0001, start + duration);
 
     oscillator.connect(filter);
@@ -1451,7 +1465,9 @@
     });
   });
 
-  startButton.addEventListener("click", startGame);
+  startButton.addEventListener("click", () => {
+    void startGame();
+  });
   restartButton.addEventListener("click", () => {
     stopUrgentAlarm();
     stopBackgroundMusic();
@@ -1460,11 +1476,11 @@
     game = createInitialGame(selectedLevel);
     syncHud();
   });
-  musicToggle.addEventListener("click", () => {
+  musicToggle.addEventListener("click", async () => {
     musicEnabled = !musicEnabled;
     syncMusicToggle();
-    prepareAudio();
-    if (musicEnabled && game.state === "playing") {
+    const audioReady = await prepareAudio();
+    if (musicEnabled && game.state === "playing" && audioReady) {
       startBackgroundMusic();
     } else {
       stopBackgroundMusic();
