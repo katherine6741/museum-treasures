@@ -48,6 +48,8 @@ const checks = [
   ["game.js", "drawExitDirectorySign"],
   ["game.js", "exit-sign"],
   ["game.js", "EXIT"],
+  ["game.js", "drawSecurityGuard"],
+  ["game.js", "Flashlight beam"],
   ["game.js", "exhibits"],
   ["game.js", "guardSpeed"],
   ["game.js", "MuseumTreasures"]

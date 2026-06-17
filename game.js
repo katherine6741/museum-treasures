@@ -803,14 +803,106 @@
       drawMuseumDisplayCase(size, time);
     } else if (object.type === "statue") {
       drawMuseumStatue(size);
+    } else if (object.type === "guard" || object.type === "guard-alert") {
+      drawSecurityGuard(size, object.type === "guard-alert", time);
     } else {
-      ctx.fillStyle = object.type === "guard-alert" ? "#ff2f5f" : "#f7f1e3";
-      ctx.fillRect(-size * 0.22, -size * 0.68, size * 0.44, size * 0.74);
-      ctx.fillStyle = object.type === "guard-alert" ? "#ffd166" : "#203650";
-      ctx.beginPath();
-      ctx.arc(0, -size * 0.78, size * 0.18, 0, Math.PI * 2);
-      ctx.fill();
+      ctx.fillStyle = "#f7f1e3";
+      ctx.fillRect(-size * 0.18, -size * 0.5, size * 0.36, size * 0.5);
     }
+    ctx.restore();
+  }
+
+  function drawSecurityGuard(size, alert, time) {
+    const pulse = alert ? 0.7 + Math.sin(time * 10) * 0.2 : 0.45;
+    drawGlow(0, -size * 0.42, size * (alert ? 0.62 : 0.36), alert ? "rgba(255, 47, 95, 0.22)" : "rgba(85, 214, 255, 0.1)");
+
+    ctx.save();
+    ctx.shadowColor = alert ? "rgba(255, 47, 95, 0.6)" : "rgba(3, 6, 12, 0.55)";
+    ctx.shadowBlur = size * 0.04;
+
+    // Flashlight beam angled across the corridor.
+    ctx.globalAlpha = alert ? 0.28 : 0.16;
+    ctx.fillStyle = alert ? "rgba(255, 214, 223, 0.36)" : "rgba(218, 239, 255, 0.28)";
+    ctx.beginPath();
+    ctx.moveTo(size * 0.16, -size * 0.34);
+    ctx.lineTo(size * 0.74, -size * 0.58);
+    ctx.lineTo(size * 0.72, -size * 0.2);
+    ctx.closePath();
+    ctx.fill();
+    ctx.globalAlpha = 1;
+
+    // Legs and boots.
+    ctx.fillStyle = "#101722";
+    ctx.fillRect(-size * 0.16, -size * 0.08, size * 0.12, size * 0.24);
+    ctx.fillRect(size * 0.04, -size * 0.08, size * 0.12, size * 0.24);
+    ctx.fillStyle = "#06090f";
+    ctx.fillRect(-size * 0.19, size * 0.14, size * 0.17, size * 0.05);
+    ctx.fillRect(size * 0.02, size * 0.14, size * 0.17, size * 0.05);
+
+    // Uniform body.
+    const uniform = ctx.createLinearGradient(0, -size * 0.62, 0, size * 0.1);
+    uniform.addColorStop(0, alert ? "#273147" : "#1f2b3a");
+    uniform.addColorStop(0.5, alert ? "#182032" : "#142033");
+    uniform.addColorStop(1, "#080d16");
+    ctx.fillStyle = uniform;
+    ctx.beginPath();
+    ctx.moveTo(-size * 0.2, -size * 0.58);
+    ctx.lineTo(size * 0.2, -size * 0.58);
+    ctx.lineTo(size * 0.26, -size * 0.08);
+    ctx.lineTo(-size * 0.26, -size * 0.08);
+    ctx.closePath();
+    ctx.fill();
+
+    // Shoulders, belt, badge, tie.
+    ctx.fillStyle = alert ? "rgba(255, 47, 95, 0.8)" : "rgba(255, 209, 102, 0.72)";
+    ctx.fillRect(-size * 0.22, -size * 0.52, size * 0.14, size * 0.035);
+    ctx.fillRect(size * 0.08, -size * 0.52, size * 0.14, size * 0.035);
+    ctx.fillStyle = "#05080e";
+    ctx.fillRect(-size * 0.24, -size * 0.2, size * 0.48, size * 0.045);
+    ctx.fillStyle = "#dff8ff";
+    ctx.fillRect(size * 0.07, -size * 0.43, size * 0.08, size * 0.055);
+    ctx.fillStyle = alert ? "#ff2f5f" : "#55d6ff";
+    ctx.beginPath();
+    ctx.moveTo(0, -size * 0.52);
+    ctx.lineTo(size * 0.04, -size * 0.34);
+    ctx.lineTo(0, -size * 0.24);
+    ctx.lineTo(-size * 0.04, -size * 0.34);
+    ctx.closePath();
+    ctx.fill();
+
+    // Arms and flashlight.
+    ctx.strokeStyle = "#111a28";
+    ctx.lineWidth = Math.max(4, size * 0.055);
+    ctx.lineCap = "round";
+    ctx.beginPath();
+    ctx.moveTo(-size * 0.2, -size * 0.46);
+    ctx.lineTo(-size * 0.34, -size * 0.22);
+    ctx.moveTo(size * 0.2, -size * 0.44);
+    ctx.lineTo(size * 0.36, -size * 0.28);
+    ctx.stroke();
+    ctx.strokeStyle = alert ? "#ff9ab0" : "#cfe9ff";
+    ctx.lineWidth = Math.max(2, size * 0.02);
+    ctx.beginPath();
+    ctx.moveTo(size * 0.31, -size * 0.3);
+    ctx.lineTo(size * 0.45, -size * 0.36);
+    ctx.stroke();
+
+    // Head and cap.
+    ctx.fillStyle = "#d2a77d";
+    ctx.beginPath();
+    ctx.arc(0, -size * 0.72, size * 0.13, 0, Math.PI * 2);
+    ctx.fill();
+    ctx.fillStyle = "#0a101a";
+    ctx.fillRect(-size * 0.15, -size * 0.86, size * 0.3, size * 0.08);
+    ctx.beginPath();
+    ctx.ellipse(0, -size * 0.82, size * 0.16, size * 0.07, 0, Math.PI, 0);
+    ctx.fill();
+    ctx.fillStyle = alert ? `rgba(255, 47, 95, ${pulse})` : "rgba(255, 209, 102, 0.74)";
+    ctx.fillRect(-size * 0.045, -size * 0.855, size * 0.09, size * 0.018);
+
+    // Face shadow/visor for a more serious security look.
+    ctx.fillStyle = "rgba(5, 10, 20, 0.35)";
+    ctx.fillRect(-size * 0.1, -size * 0.75, size * 0.2, size * 0.035);
     ctx.restore();
   }
 
