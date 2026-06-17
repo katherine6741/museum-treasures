@@ -66,6 +66,10 @@ const checks = [
   ["game.js", "MuseumTreasures"]
 ];
 
+const forbiddenChecks = [
+  ["game.js", "createMusicDrone"]
+];
+
 const files = new Map();
 
 for (const file of requiredFiles) {
@@ -73,11 +77,15 @@ for (const file of requiredFiles) {
 }
 
 const failures = checks.filter(([file, needle]) => !files.get(file).includes(needle));
+const forbiddenFailures = forbiddenChecks.filter(([file, needle]) => files.get(file).includes(needle));
 
-if (failures.length > 0) {
+if (failures.length > 0 || forbiddenFailures.length > 0) {
   console.error("Smoke test failed:");
   for (const [file, needle] of failures) {
     console.error(`- ${file} is missing ${needle}`);
+  }
+  for (const [file, needle] of forbiddenFailures) {
+    console.error(`- ${file} still contains forbidden ${needle}`);
   }
   process.exit(1);
 }

@@ -14,7 +14,7 @@
   const CAUGHT_ANIMATION_DURATION = 1.8;
   const URGENT_ALARM_THRESHOLD = 10;
   const MASTER_VOLUME = 0.28;
-  const BACKGROUND_MUSIC_VOLUME = 0.36;
+  const BACKGROUND_MUSIC_VOLUME = 0.32;
   const MUSIC_NOTE_SCALE = [196, 233.08, 261.63, 293.66, 349.23, 392];
   const FOV = Math.PI / 3;
   const MAX_RAY_DISTANCE = 18;
@@ -291,47 +291,17 @@
     gain.gain.setValueAtTime(0.0001, audioContext.currentTime);
     gain.gain.exponentialRampToValueAtTime(BACKGROUND_MUSIC_VOLUME, audioContext.currentTime + 1.2);
 
-    const filter = audioContext.createBiquadFilter();
-    filter.type = "lowpass";
-    filter.frequency.setValueAtTime(860, audioContext.currentTime);
-    filter.Q.setValueAtTime(0.7, audioContext.currentTime);
-
-    const padA = createMusicDrone(98, "sine", 0.34);
-    const padB = createMusicDrone(146.83, "triangle", 0.24);
-    padA.connect(filter);
-    padB.connect(filter);
-    filter.connect(gain);
     gain.connect(masterGain);
 
-    padA.start();
-    padB.start();
-    backgroundMusic = { gain, drones: [padA, padB] };
+    backgroundMusic = { gain };
     playMusicWakeCue();
     nextMusicNoteAt = audioContext.currentTime + 0.32;
   }
 
-  function createMusicDrone(frequency, type, volume) {
-    const oscillator = audioContext.createOscillator();
-    const gain = audioContext.createGain();
-    oscillator.type = type;
-    oscillator.frequency.setValueAtTime(frequency, audioContext.currentTime);
-    gain.gain.setValueAtTime(volume, audioContext.currentTime);
-    oscillator.connect(gain);
-    return {
-      connect: (target) => gain.connect(target),
-      start: () => oscillator.start(),
-      stop: (when) => oscillator.stop(when)
-    };
-  }
-
   function stopBackgroundMusic() {
     if (!backgroundMusic || !audioContext) return;
-    const stopAt = audioContext.currentTime + 0.7;
     backgroundMusic.gain.gain.cancelScheduledValues(audioContext.currentTime);
     backgroundMusic.gain.gain.setTargetAtTime(0.0001, audioContext.currentTime, 0.28);
-    for (const drone of backgroundMusic.drones) {
-      drone.stop(stopAt);
-    }
     backgroundMusic = null;
     nextMusicNoteAt = 0;
   }
@@ -360,13 +330,13 @@
     const gain = audioContext.createGain();
     const filter = audioContext.createBiquadFilter();
 
-    oscillator.type = urgent ? "square" : "triangle";
+    oscillator.type = urgent ? "triangle" : "sine";
     oscillator.frequency.setValueAtTime(frequency, start);
-    oscillator.frequency.exponentialRampToValueAtTime(frequency * 0.5, start + duration);
+    oscillator.frequency.setValueAtTime(frequency, start + duration);
     filter.type = "lowpass";
-    filter.frequency.setValueAtTime(urgent ? 1320 : 920, start);
+    filter.frequency.setValueAtTime(urgent ? 1180 : 820, start);
     gain.gain.setValueAtTime(0.0001, start);
-    gain.gain.exponentialRampToValueAtTime(urgent ? 0.22 : 0.18, start + 0.035);
+    gain.gain.exponentialRampToValueAtTime(urgent ? 0.18 : 0.13, start + 0.035);
     gain.gain.exponentialRampToValueAtTime(0.0001, start + duration);
 
     oscillator.connect(filter);
