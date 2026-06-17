@@ -21,6 +21,15 @@ https://museum-treasures.pages.dev/
 - Technical guidance: CK Leung
 - Target device: iPad Safari, with desktop browser support for testing
 
+## IBL Project Team
+
+- Katherine Leung - primary creator and game designer
+- Carolyn
+- James
+- Mylo
+- Jan
+- Ambrose
+
 ## Gameplay
 
 1. Choose Easy, Medium, or Hard.
@@ -120,6 +129,7 @@ Then enable GitHub Pages, Cloudflare Pages, or another static hosting service fo
 Museum Treasures was developed as an AI-assisted educational game project.
 
 - Primary creator and game designer: Katherine Leung
+- IBL project team: Katherine Leung, Carolyn, James, Mylo, Jan, Ambrose
 - Vibe coding development tool: OpenAI Codex
 - AI token sponsor: Loretta Hao
 - Technical guidance: CK Leung
