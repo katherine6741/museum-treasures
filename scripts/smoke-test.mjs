@@ -69,4 +69,61 @@ if (failures.length > 0) {
   process.exit(1);
 }
 
-console.log("Smoke test passed: Museum Treasures files and core behaviors are present.");
+const levels = extractLevels(files.get("game.js"));
+const routeFailures = [];
+
+for (const [levelName, level] of Object.entries(levels)) {
+  const routeDistance = shortestRoute(level.map);
+  if (!Number.isFinite(routeDistance)) {
+    routeFailures.push(`${levelName} has no route from exit to diamond`);
+  }
+}
+
+if (routeFailures.length > 0) {
+  console.error("Smoke test failed:");
+  for (const failure of routeFailures) {
+    console.error(`- ${failure}`);
+  }
+  process.exit(1);
+}
+
+console.log("Smoke test passed: Museum Treasures files, routes, and core behaviors are present.");
+
+function extractLevels(source) {
+  const match = source.match(/const LEVELS = (\{[\s\S]*?\n  \});/);
+  if (!match) throw new Error("Could not find LEVELS object");
+  return new Function(`return (${match[1]});`)();
+}
+
+function shortestRoute(rows) {
+  const start = findTile(rows, "E");
+  const goal = findTile(rows, "D");
+  const queue = [[start.x, start.y, 0]];
+  const seen = new Set([`${start.x},${start.y}`]);
+
+  while (queue.length > 0) {
+    const [x, y, distance] = queue.shift();
+    if (x === goal.x && y === goal.y) return distance;
+
+    for (const [dx, dy] of [[1, 0], [-1, 0], [0, 1], [0, -1]]) {
+      const nx = x + dx;
+      const ny = y + dy;
+      const key = `${nx},${ny}`;
+      if (seen.has(key)) continue;
+      if (ny < 0 || ny >= rows.length || nx < 0 || nx >= rows[ny].length) continue;
+      if (rows[ny][nx] === "1") continue;
+      seen.add(key);
+      queue.push([nx, ny, distance + 1]);
+    }
+  }
+
+  return Infinity;
+}
+
+function findTile(rows, tile) {
+  for (let y = 0; y < rows.length; y += 1) {
+    const x = rows[y].indexOf(tile);
+    if (x !== -1) return { x, y };
+  }
+  throw new Error(`Missing ${tile} tile`);
+}
