@@ -37,6 +37,8 @@ const checks = [
   ["game.js", "isSpikeExtended"],
   ["game.js", "hasLineOfSight"],
   ["game.js", "drawMapDiamond"],
+  ["game.js", "drawPlayerMapBeam"],
+  ["game.js", "beamSpread"],
   ["game.js", "renderScreenGrade"],
   ["game.js", "renderFloorPerspective"],
   ["game.js", "renderPolishedFloorSheen"],

@@ -515,7 +515,7 @@
     }
 
     renderWorldObjects(depthBuffer, time, cameraAngle);
-    renderMinimap(time);
+    renderMinimap(time, cameraAngle);
     renderScreenGrade(width, height, time);
   }
 
@@ -1086,7 +1086,7 @@
     if (stroke) ctx.stroke();
   }
 
-  function renderMinimap(time) {
+  function renderMinimap(time, cameraAngle) {
     const size = Math.min(canvas.width * 0.22, 260);
     const pixelRatio = window.devicePixelRatio || 1;
     const pad = 16 * pixelRatio;
@@ -1110,7 +1110,54 @@
     drawMapDot(x0, y0, cell, game.exit.x + 0.5, game.exit.y + 0.5, "#55d6ff", 0.72);
     if (!game.hasDiamond) drawMapDiamond(x0, y0, cell, game.diamond.x + 0.5, game.diamond.y + 0.5, time);
     for (const guard of game.guards) drawMapDot(x0, y0, cell, guard.x, guard.y, guard.chase ? "#ff2f5f" : "#ffffff", 0.62);
+    drawPlayerMapBeam(x0, y0, size, cell, game.player.x, game.player.y, cameraAngle);
     drawMapDot(x0, y0, cell, game.player.x, game.player.y, "#45e394", 0.78);
+  }
+
+  function drawPlayerMapBeam(x0, y0, mapSize, cell, x, y, angle) {
+    const centerX = x0 + x * cell;
+    const centerY = y0 + y * cell;
+    const beamLength = Math.max(cell * 2.2, mapSize * 0.18);
+    const beamSpread = Math.PI / 5;
+    const leftAngle = angle - beamSpread;
+    const rightAngle = angle + beamSpread;
+
+    ctx.save();
+    ctx.beginPath();
+    ctx.rect(x0, y0, mapSize, mapSize);
+    ctx.clip();
+
+    const gradientEndX = centerX + Math.cos(angle) * beamLength;
+    const gradientEndY = centerY + Math.sin(angle) * beamLength;
+    const beamGradient = ctx.createRadialGradient(centerX, centerY, 0, gradientEndX, gradientEndY, beamLength);
+    beamGradient.addColorStop(0, "rgba(69, 227, 148, 0.28)");
+    beamGradient.addColorStop(0.58, "rgba(69, 227, 148, 0.12)");
+    beamGradient.addColorStop(1, "rgba(69, 227, 148, 0)");
+
+    ctx.fillStyle = beamGradient;
+    ctx.beginPath();
+    ctx.moveTo(centerX, centerY);
+    ctx.lineTo(centerX + Math.cos(leftAngle) * beamLength, centerY + Math.sin(leftAngle) * beamLength);
+    ctx.arc(centerX, centerY, beamLength, leftAngle, rightAngle);
+    ctx.closePath();
+    ctx.fill();
+
+    ctx.strokeStyle = "rgba(210, 255, 232, 0.72)";
+    ctx.lineWidth = Math.max(1.5, cell * 0.14);
+    ctx.lineCap = "round";
+    ctx.beginPath();
+    ctx.moveTo(centerX, centerY);
+    ctx.lineTo(centerX + Math.cos(angle) * beamLength * 0.72, centerY + Math.sin(angle) * beamLength * 0.72);
+    ctx.stroke();
+
+    ctx.fillStyle = "rgba(210, 255, 232, 0.82)";
+    ctx.beginPath();
+    ctx.moveTo(centerX + Math.cos(angle) * beamLength * 0.82, centerY + Math.sin(angle) * beamLength * 0.82);
+    ctx.lineTo(centerX + Math.cos(angle + 2.65) * cell * 0.42, centerY + Math.sin(angle + 2.65) * cell * 0.42);
+    ctx.lineTo(centerX + Math.cos(angle - 2.65) * cell * 0.42, centerY + Math.sin(angle - 2.65) * cell * 0.42);
+    ctx.closePath();
+    ctx.fill();
+    ctx.restore();
   }
 
   function drawMapDot(x0, y0, cell, x, y, color, radius) {
