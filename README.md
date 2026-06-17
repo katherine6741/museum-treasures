@@ -10,7 +10,7 @@ The project combines game design, spatial reasoning, touch interaction, and AI-a
 - Primary creator and game designer: Katherine Leung
 - Development style: Vibe coding with OpenAI Codex
 - AI token sponsorship: Loretta Hao
-- Technical guidance: Charles Kin Leung
+- Technical guidance: CK Leung
 - Target device: iPad Safari, with desktop browser support for testing
 
 ## Gameplay
@@ -92,5 +92,5 @@ Museum Treasures was developed as an AI-assisted educational game project.
 - Primary creator and game designer: Katherine Leung
 - Vibe coding development tool: OpenAI Codex
 - AI token sponsor: Loretta Hao
-- Technical guidance: Charles Kin Leung
+- Technical guidance: CK Leung
 - Educational application: June 2026 IBL project at St. Stephen's College Preparatory School
