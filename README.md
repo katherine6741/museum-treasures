@@ -52,7 +52,7 @@ https://museum-treasures.pages.dev/
 
 ## Development Journey
 
-Museum Treasures was developed through an iterative AI-assisted workflow. The project started from a student game concept: a museum treasure escape challenge with a diamond objective, guards, traps, and a time-limited escape. The implementation then evolved through repeated playtesting and refinement.
+Museum Treasures was developed through an iterative AI-assisted workflow led by Katherine Leung's game design direction. The project started from a student game concept: a museum treasure escape challenge with a diamond objective, guards, traps, and a time-limited escape. The implementation then evolved through repeated playtesting and refinement.
 
 Key design decisions included:
 
