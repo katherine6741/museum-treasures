@@ -6,6 +6,10 @@
   const BASE_SPEED = 2.35;
   const TURN_SPEED = 2.45;
   const LOOK_PITCH_SPEED = 1.45;
+  const CAMERA_FOLLOW_RATE = 12;
+  const CAMERA_BOB_RATE = 10;
+  const CAMERA_BOB_STRENGTH = 0.012;
+  const CAMERA_LEAN_STRENGTH = 0.018;
   const ESCAPE_TIME_LIMIT = 45;
   const CAUGHT_ANIMATION_DURATION = 1.8;
   const URGENT_ALARM_THRESHOLD = 10;
@@ -158,7 +162,17 @@
       height: parsed.height,
       exit: parsed.exit,
       diamond: parsed.diamond,
-      player: { x: parsed.exit.x + 0.5, y: parsed.exit.y + 0.5, angle: 0, pitch: 0 },
+      player: {
+        x: parsed.exit.x + 0.5,
+        y: parsed.exit.y + 0.5,
+        targetAngle: 0,
+        cameraAngle: 0,
+        targetPitch: 0,
+        cameraPitch: 0,
+        bobTime: 0,
+        bobAmount: 0,
+        lean: 0
+      },
       playerHearts: 3,
       hasDiamond: false,
       escapeTime: ESCAPE_TIME_LIMIT,
@@ -346,12 +360,15 @@
     const forwardAmount = -forwardInput * BASE_SPEED * speedModifier * dt;
     const strafeAmount = strafeInput * BASE_SPEED * speedModifier * dt;
 
-    game.player.angle += turnInput * TURN_SPEED * dt;
-    game.player.pitch = clamp(game.player.pitch + pitchInput * LOOK_PITCH_SPEED * dt, -0.34, 0.34);
+    game.player.targetAngle += turnInput * TURN_SPEED * dt;
+    game.player.targetPitch = clamp(game.player.targetPitch + pitchInput * LOOK_PITCH_SPEED * dt, -0.34, 0.34);
+    updateCameraSmoothing(dt, forwardInput, strafeInput);
+
+    const movementAngle = game.player.targetAngle;
     tryMove(
       game.player,
-      Math.cos(game.player.angle) * forwardAmount + Math.cos(game.player.angle + Math.PI / 2) * strafeAmount,
-      Math.sin(game.player.angle) * forwardAmount + Math.sin(game.player.angle + Math.PI / 2) * strafeAmount
+      Math.cos(movementAngle) * forwardAmount + Math.cos(movementAngle + Math.PI / 2) * strafeAmount,
+      Math.sin(movementAngle) * forwardAmount + Math.sin(movementAngle + Math.PI / 2) * strafeAmount
     );
 
     if (distanceToTile(game.player, game.diamond) < 0.48 && !game.hasDiamond) {
@@ -385,6 +402,16 @@
     } else {
       game.wasteTick = 0;
     }
+  }
+
+  function updateCameraSmoothing(dt, forwardInput, strafeInput) {
+    const follow = 1 - Math.exp(-CAMERA_FOLLOW_RATE * dt);
+    const moveIntensity = clamp(Math.hypot(forwardInput, strafeInput), 0, 1);
+    game.player.cameraAngle = lerpAngle(game.player.cameraAngle, game.player.targetAngle, follow);
+    game.player.cameraPitch += (game.player.targetPitch - game.player.cameraPitch) * follow;
+    game.player.bobTime += moveIntensity * CAMERA_BOB_RATE * dt;
+    game.player.bobAmount += (moveIntensity - game.player.bobAmount) * Math.min(1, dt * 8);
+    game.player.lean += (strafeInput * CAMERA_LEAN_STRENGTH - game.player.lean) * Math.min(1, dt * 7);
   }
 
   function currentWasteHazard() {
@@ -466,7 +493,10 @@
     resizeCanvas();
     const width = canvas.width;
     const height = canvas.height;
-    const horizon = height * (0.48 + game.player.pitch);
+    const bob = Math.sin(game.player.bobTime) * game.player.bobAmount * CAMERA_BOB_STRENGTH;
+    const cameraPitch = game.player.cameraPitch + bob;
+    const cameraAngle = game.player.cameraAngle + game.player.lean;
+    const horizon = height * (0.48 + cameraPitch);
 
     renderMuseumBackdrop(width, height, horizon, time);
 
@@ -475,9 +505,9 @@
     const depthBuffer = [];
     for (let i = 0; i < columns; i += 1) {
       const cameraX = i / columns - 0.5;
-      const angle = game.player.angle + cameraX * FOV;
+      const angle = cameraAngle + cameraX * FOV;
       const hit = castRay(angle);
-      const corrected = hit.distance * Math.cos(angle - game.player.angle);
+      const corrected = hit.distance * Math.cos(angle - cameraAngle);
       const wallHeight = Math.min(height, height / Math.max(0.001, corrected));
       const x = i * columnWidth;
       const y = horizon - wallHeight / 2;
@@ -485,7 +515,7 @@
       depthBuffer[i] = corrected;
     }
 
-    renderWorldObjects(depthBuffer, time);
+    renderWorldObjects(depthBuffer, time, cameraAngle);
     renderMinimap(time);
     renderScreenGrade(width, height, time);
   }
@@ -696,7 +726,7 @@
     }
   }
 
-  function renderWorldObjects(depthBuffer, time) {
+  function renderWorldObjects(depthBuffer, time, cameraAngle) {
     const objects = [];
     if (!game.hasDiamond) objects.push({ type: "diamond", x: game.diamond.x + 0.5, y: game.diamond.y + 0.5 });
     objects.push({ type: "exit", x: game.exit.x + 0.5, y: game.exit.y + 0.5 });
@@ -710,7 +740,7 @@
       const dx = object.x - game.player.x;
       const dy = object.y - game.player.y;
       const distance = Math.hypot(dx, dy);
-      const angleToObject = normalizeAngle(Math.atan2(dy, dx) - game.player.angle);
+      const angleToObject = normalizeAngle(Math.atan2(dy, dx) - cameraAngle);
       if (Math.abs(angleToObject) > FOV * 0.72 || distance < 0.05) continue;
 
       const screenX = (0.5 + angleToObject / FOV) * canvas.width;
@@ -757,17 +787,7 @@
     } else if (object.type === "exit-sign") {
       drawExitDirectorySign(size);
     } else if (object.type === "laser") {
-      ctx.globalAlpha = isLaserActive(time) ? 1 : 0.22;
-      ctx.strokeStyle = "#ff2f5f";
-      ctx.lineWidth = Math.max(5, size * 0.08);
-      ctx.beginPath();
-      ctx.moveTo(-size * 0.42, -size * 0.35);
-      ctx.lineTo(size * 0.42, -size * 0.72);
-      ctx.stroke();
-      ctx.beginPath();
-      ctx.moveTo(-size * 0.42, -size * 0.05);
-      ctx.lineTo(size * 0.42, -size * 0.42);
-      ctx.stroke();
+      drawInfraredLaser(size, time);
     } else if (object.type === "waste") {
       drawGlow(0, size * 0.04, size * 0.36, "rgba(69, 227, 148, 0.26)");
       ctx.fillStyle = "rgba(69, 227, 148, 0.68)";
@@ -803,6 +823,64 @@
     ctx.beginPath();
     ctx.arc(x, y, radius, 0, Math.PI * 2);
     ctx.fill();
+  }
+
+  function drawInfraredLaser(size, time) {
+    const active = isLaserActive(time);
+    const pulse = active ? 0.72 + Math.sin(time * 14) * 0.18 : 0.18;
+    const beams = [
+      { x1: -0.42, y1: -0.35, x2: 0.42, y2: -0.72 },
+      { x1: -0.42, y1: -0.05, x2: 0.42, y2: -0.42 }
+    ];
+
+    ctx.save();
+    for (const beam of beams) {
+      const x1 = beam.x1 * size;
+      const y1 = beam.y1 * size;
+      const x2 = beam.x2 * size;
+      const y2 = beam.y2 * size;
+
+      ctx.globalAlpha = pulse * 0.42;
+      ctx.strokeStyle = "#ff2f5f";
+      ctx.lineWidth = Math.max(12, size * 0.16);
+      ctx.lineCap = "round";
+      ctx.shadowColor = "rgba(255, 47, 95, 0.82)";
+      ctx.shadowBlur = size * 0.12;
+      ctx.beginPath();
+      ctx.moveTo(x1, y1);
+      ctx.lineTo(x2, y2);
+      ctx.stroke();
+
+      ctx.globalAlpha = active ? 1 : 0.28;
+      ctx.strokeStyle = "#ffd6df";
+      ctx.lineWidth = Math.max(3, size * 0.035);
+      ctx.shadowBlur = size * 0.05;
+      ctx.beginPath();
+      ctx.moveTo(x1, y1);
+      ctx.lineTo(x2, y2);
+      ctx.stroke();
+
+      drawLaserEmitter(x1, y1, size, active);
+      drawLaserEmitter(x2, y2, size, active);
+    }
+    ctx.restore();
+  }
+
+  function drawLaserEmitter(x, y, size, active) {
+    ctx.save();
+    ctx.globalAlpha = active ? 0.95 : 0.45;
+    ctx.fillStyle = "rgba(10, 12, 18, 0.9)";
+    ctx.strokeStyle = active ? "#ff9ab0" : "rgba(255, 154, 176, 0.45)";
+    ctx.lineWidth = Math.max(2, size * 0.018);
+    ctx.beginPath();
+    ctx.arc(x, y, Math.max(5, size * 0.045), 0, Math.PI * 2);
+    ctx.fill();
+    ctx.stroke();
+    ctx.fillStyle = active ? "#ff2f5f" : "rgba(255, 47, 95, 0.4)";
+    ctx.beginPath();
+    ctx.arc(x, y, Math.max(2, size * 0.018), 0, Math.PI * 2);
+    ctx.fill();
+    ctx.restore();
   }
 
   function drawExitSign(size) {
@@ -1075,6 +1153,10 @@
     while (angle < -Math.PI) angle += Math.PI * 2;
     while (angle > Math.PI) angle -= Math.PI * 2;
     return angle;
+  }
+
+  function lerpAngle(from, to, amount) {
+    return from + normalizeAngle(to - from) * amount;
   }
 
   function clamp(value, min, max) {
