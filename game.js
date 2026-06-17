@@ -14,7 +14,7 @@
   const CAUGHT_ANIMATION_DURATION = 1.8;
   const URGENT_ALARM_THRESHOLD = 10;
   const MASTER_VOLUME = 0.28;
-  const BACKGROUND_MUSIC_VOLUME = 0.32;
+  const BACKGROUND_MUSIC_VOLUME = 0.44;
   const MUSIC_NOTE_SCALE = [196, 233.08, 261.63, 293.66, 349.23, 392];
   const FOV = Math.PI / 3;
   const MAX_RAY_DISTANCE = 18;
@@ -336,7 +336,7 @@
     filter.type = "lowpass";
     filter.frequency.setValueAtTime(urgent ? 1180 : 820, start);
     gain.gain.setValueAtTime(0.0001, start);
-    gain.gain.exponentialRampToValueAtTime(urgent ? 0.18 : 0.13, start + 0.035);
+    gain.gain.exponentialRampToValueAtTime(urgent ? 0.26 : 0.2, start + 0.035);
     gain.gain.exponentialRampToValueAtTime(0.0001, start + duration);
 
     oscillator.connect(filter);
