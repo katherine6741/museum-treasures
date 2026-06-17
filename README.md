@@ -1,43 +1,94 @@
 # Museum Treasures
 
-Museum Treasures is a full-screen HTML5 3D maze game built for iPad Safari and GitHub Pages. Players explore a museum maze, collect the center diamond, trigger a 45-second alarm, and race back to the blue exit gate while avoiding guards and traps.
+Museum Treasures is a browser-based 3D museum maze game designed for the June 2026 IBL project at 聖士提反中學附屬小學. Players enter a guarded museum, find the diamond, trigger the alarm, and race back to the exit before time runs out.
 
-## How to Play
+The project combines game design, spatial reasoning, touch interaction, and AI-assisted development into a playable learning experience for students.
 
-1. Open `index.html` in a browser or serve the folder with a local static server.
-2. Choose Easy, Medium, or Hard.
-3. Use the bottom-left virtual joystick on iPad. Desktop arrow keys or WASD also work for testing.
-4. Reach the diamond, then escape through the blue gate before the alarm timer reaches zero.
+## Project Context
 
-## Game Features
+- School project: June 2026 IBL project, 聖士提反中學附屬小學
+- Development style: Vibe coding with OpenAI Codex
+- AI token sponsorship: Loretta Hao
+- Technical guidance: Charles Kin Leung
+- Target device: iPad Safari, with desktop browser support for testing
 
-- First-person 3D maze rendering with a responsive HTML5 canvas.
-- iPad-ready touch joystick with no keyboard or mouse dependency.
-- Three difficulty modes with increasing guard speed, hazard density, and maze complexity.
-- Blinking lasers, toxic waste, retractable spikes, structural dead ends, and patrolling guards.
-- Guard line-of-sight chasing and instant defeat on player collision.
-- Three-heart health system for hazards.
-- Urgent generated alarm beeps during the final 10 seconds after the diamond is taken.
-- GitHub Pages-ready static files with no build step.
+## Gameplay
+
+1. Choose Easy, Medium, or Hard.
+2. Use the left joystick to move through the museum.
+3. Use the right joystick to look around, including up, down, left, and right.
+4. Study the minimap, avoid guards and traps, and reach the diamond.
+5. After collecting the diamond, escape through the blue Exit gate before the 45-second alarm timer reaches zero.
+
+## Highlights
+
+- Full-screen HTML5 Canvas rendering with a first-person museum maze view.
+- iPad-friendly dual virtual joystick controls.
+- Three difficulty levels with different maze layouts, traps, guards, and pacing.
+- Museum-themed visuals including exhibit cases, statues, wall artwork, polished floors, ceiling treatment, and Exit signage.
+- Security systems including blinking infrared lasers, retractable spikes, toxic waste, and patrolling guards.
+- Guard line-of-sight chasing and a caught animation when the player fails to escape.
+- Diamond objective, 45-second escape timer, final 10-second alarm sound, and adaptive background music.
+- Minimap with player position and a direction beam showing the player's current facing direction.
+- Static GitHub Pages-friendly structure with no build step required.
+
+## Technology
+
+- HTML5
+- CSS3
+- Vanilla JavaScript
+- Canvas 2D rendering
+- Web Audio API for alarm and background music
+- GitHub Pages-ready static deployment
 
 ## Files
 
-- `index.html` — Game layout, HUD, start menu, and overlays.
-- `style.css` — Full-screen responsive iPad styling and touch-safe UI.
-- `controls.js` — Virtual joystick control layer.
-- `game.js` — Core loop, maze state, hazards, guards, timer, and rendering.
-- `scripts/smoke-test.mjs` — Dependency-free project smoke test.
+- `index.html` - Game layout, HUD, start menu, overlays, and touch controls.
+- `style.css` - Full-screen responsive styling for iPad and desktop browsers.
+- `controls.js` - Virtual joystick control layer.
+- `game.js` - Core game loop, maze state, hazards, guards, timer, audio, and rendering.
+- `scripts/smoke-test.mjs` - Dependency-free smoke test for required game behavior.
+- `scripts/local-server.mjs` - Local static server for previewing the game.
+- `package-lock.json` - Lockfile used so `npm audit` can run consistently.
 
-## Smoke Test
+## Run Locally
 
-Run:
+```bash
+npm start
+```
+
+Then open:
+
+```text
+http://localhost:4173
+```
+
+The game can also be opened directly from `index.html`, although the local server is recommended for testing.
+
+## Test
 
 ```bash
 npm test
+npm audit --audit-level=high
 ```
 
-The smoke test checks that required files exist and that the main game behaviors are wired into the source.
+The smoke test checks that required files exist, core gameplay behavior is wired in, and each level remains reachable.
 
 ## Deployment
 
-This project is static. Push the files to the `main` branch of `https://github.com/katherine6741/museum-treasures.git`, then enable GitHub Pages for the branch if it is not already enabled.
+This project is a static web game. To deploy with GitHub Pages, push the files to the `main` branch of:
+
+```text
+https://github.com/katherine6741/museum-treasures.git
+```
+
+Then enable GitHub Pages for the repository branch if it is not already enabled.
+
+## Credits
+
+Museum Treasures was developed as an AI-assisted educational game project.
+
+- Vibe coding development tool: OpenAI Codex
+- AI token sponsor: Loretta Hao
+- Technical guidance: Charles Kin Leung
+- Educational application: June 2026 IBL project at 聖士提反中學附屬小學
