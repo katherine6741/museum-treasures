@@ -66,8 +66,10 @@
       ],
       hazards: [
         { type: "laser", x: 4, y: 5 },
+        { type: "laser", x: 8, y: 5 },
         { type: "laser", x: 10, y: 9 },
-        { type: "waste", x: 6, y: 7 }
+        { type: "waste", x: 6, y: 7 },
+        { type: "spike", x: 12, y: 7 }
       ],
       exhibits: [
         { type: "display-case", x: 7.5, y: 1.5 },

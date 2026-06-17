@@ -92,12 +92,17 @@ if (failures.length > 0 || forbiddenFailures.length > 0) {
 
 const levels = extractLevels(files.get("game.js"));
 const routeFailures = [];
+const mediumHazards = levels.medium.hazards || [];
 
 for (const [levelName, level] of Object.entries(levels)) {
   const routeDistance = shortestRoute(level.map);
   if (!Number.isFinite(routeDistance)) {
     routeFailures.push(`${levelName} has no route from exit to diamond`);
   }
+}
+
+if (mediumHazards.length < 5 || !mediumHazards.some((hazard) => hazard.type === "spike")) {
+  routeFailures.push("medium level should include added traps including at least one spike");
 }
 
 if (routeFailures.length > 0) {
