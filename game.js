@@ -13,6 +13,8 @@
   const ESCAPE_TIME_LIMIT = 45;
   const CAUGHT_ANIMATION_DURATION = 1.8;
   const URGENT_ALARM_THRESHOLD = 10;
+  const BACKGROUND_MUSIC_VOLUME = 0.09;
+  const MUSIC_NOTE_SCALE = [196, 233.08, 261.63, 293.66, 349.23, 392];
   const FOV = Math.PI / 3;
   const MAX_RAY_DISTANCE = 18;
 
@@ -132,6 +134,7 @@
   const messageText = document.getElementById("messageText");
   const startButton = document.getElementById("startButton");
   const restartButton = document.getElementById("restartButton");
+  const musicToggle = document.getElementById("musicToggle");
   const difficultyButtons = Array.from(document.querySelectorAll(".difficulty"));
   const moveJoystick = new window.MuseumControls.TouchJoystick(
     document.getElementById("moveJoystick"),
@@ -149,6 +152,9 @@
   let audioContext = null;
   let masterGain = null;
   let nextAlarmBeepAt = 0;
+  let musicEnabled = true;
+  let backgroundMusic = null;
+  let nextMusicNoteAt = 0;
 
   function createInitialGame(levelKey) {
     const config = LEVELS[levelKey];
@@ -216,6 +222,7 @@
   function startGame() {
     prepareAudio();
     stopUrgentAlarm();
+    startBackgroundMusic();
     game = createInitialGame(selectedLevel);
     game.state = "playing";
     startOverlay.classList.add("hidden");
@@ -225,6 +232,7 @@
 
   function endGame(title, text) {
     stopUrgentAlarm();
+    stopBackgroundMusic();
     game.state = title === "Treasure Escaped" ? "won" : "lost";
     messageTitle.textContent = title;
     messageText.textContent = text;
@@ -234,6 +242,7 @@
 
   function triggerCaughtAnimation(reason) {
     stopUrgentAlarm();
+    stopBackgroundMusic();
     game.state = "caught";
     game.caughtTime = 0;
     game.caughtReason = reason;
@@ -261,6 +270,101 @@
     if (audioContext.state === "suspended") {
       audioContext.resume();
     }
+  }
+
+  function startBackgroundMusic() {
+    if (!musicEnabled || !audioContext || !masterGain) return;
+    if (backgroundMusic) {
+      backgroundMusic.gain.gain.setTargetAtTime(BACKGROUND_MUSIC_VOLUME, audioContext.currentTime, 0.5);
+      return;
+    }
+
+    const gain = audioContext.createGain();
+    gain.gain.setValueAtTime(0.0001, audioContext.currentTime);
+    gain.gain.exponentialRampToValueAtTime(BACKGROUND_MUSIC_VOLUME, audioContext.currentTime + 1.2);
+
+    const filter = audioContext.createBiquadFilter();
+    filter.type = "lowpass";
+    filter.frequency.setValueAtTime(860, audioContext.currentTime);
+    filter.Q.setValueAtTime(0.7, audioContext.currentTime);
+
+    const padA = createMusicDrone(98, "sine", 0.22);
+    const padB = createMusicDrone(146.83, "triangle", 0.14);
+    padA.connect(filter);
+    padB.connect(filter);
+    filter.connect(gain);
+    gain.connect(masterGain);
+
+    padA.start();
+    padB.start();
+    backgroundMusic = { gain, drones: [padA, padB] };
+    nextMusicNoteAt = audioContext.currentTime + 0.45;
+  }
+
+  function createMusicDrone(frequency, type, volume) {
+    const oscillator = audioContext.createOscillator();
+    const gain = audioContext.createGain();
+    oscillator.type = type;
+    oscillator.frequency.setValueAtTime(frequency, audioContext.currentTime);
+    gain.gain.setValueAtTime(volume, audioContext.currentTime);
+    oscillator.connect(gain);
+    return {
+      connect: (target) => gain.connect(target),
+      start: () => oscillator.start(),
+      stop: (when) => oscillator.stop(when)
+    };
+  }
+
+  function stopBackgroundMusic() {
+    if (!backgroundMusic || !audioContext) return;
+    const stopAt = audioContext.currentTime + 0.7;
+    backgroundMusic.gain.gain.cancelScheduledValues(audioContext.currentTime);
+    backgroundMusic.gain.gain.setTargetAtTime(0.0001, audioContext.currentTime, 0.28);
+    for (const drone of backgroundMusic.drones) {
+      drone.stop(stopAt);
+    }
+    backgroundMusic = null;
+    nextMusicNoteAt = 0;
+  }
+
+  function updateBackgroundMusic() {
+    if (!musicEnabled || !backgroundMusic || !audioContext || !masterGain) return;
+    if (audioContext.state === "suspended") return;
+    const now = audioContext.currentTime;
+    if (now < nextMusicNoteAt) return;
+
+    const noteIndex = Math.floor((game.player.x * 3 + game.player.y * 5 + now) % MUSIC_NOTE_SCALE.length);
+    const frequency = MUSIC_NOTE_SCALE[noteIndex] * (game.hasDiamond ? 1.5 : 1);
+    playMusicPulse(frequency, game.hasDiamond);
+    nextMusicNoteAt = now + (game.hasDiamond ? 0.42 : 0.72);
+  }
+
+  function playMusicPulse(frequency, urgent) {
+    const start = audioContext.currentTime;
+    const duration = urgent ? 0.18 : 0.28;
+    const oscillator = audioContext.createOscillator();
+    const gain = audioContext.createGain();
+    const filter = audioContext.createBiquadFilter();
+
+    oscillator.type = urgent ? "square" : "triangle";
+    oscillator.frequency.setValueAtTime(frequency, start);
+    oscillator.frequency.exponentialRampToValueAtTime(frequency * 0.5, start + duration);
+    filter.type = "lowpass";
+    filter.frequency.setValueAtTime(urgent ? 1320 : 920, start);
+    gain.gain.setValueAtTime(0.0001, start);
+    gain.gain.exponentialRampToValueAtTime(urgent ? 0.13 : 0.085, start + 0.035);
+    gain.gain.exponentialRampToValueAtTime(0.0001, start + duration);
+
+    oscillator.connect(filter);
+    filter.connect(gain);
+    gain.connect(backgroundMusic.gain);
+    oscillator.start(start);
+    oscillator.stop(start + duration + 0.04);
+  }
+
+  function syncMusicToggle() {
+    musicToggle.textContent = musicEnabled ? "Music On" : "Music Off";
+    musicToggle.setAttribute("aria-pressed", String(musicEnabled));
   }
 
   function stopUrgentAlarm() {
@@ -1324,6 +1428,7 @@
         return;
       }
     }
+    updateBackgroundMusic();
     updateUrgentAlarm(time);
     syncHud();
   }
@@ -1349,10 +1454,21 @@
   startButton.addEventListener("click", startGame);
   restartButton.addEventListener("click", () => {
     stopUrgentAlarm();
+    stopBackgroundMusic();
     startOverlay.classList.remove("hidden");
     messageOverlay.classList.add("hidden");
     game = createInitialGame(selectedLevel);
     syncHud();
+  });
+  musicToggle.addEventListener("click", () => {
+    musicEnabled = !musicEnabled;
+    syncMusicToggle();
+    prepareAudio();
+    if (musicEnabled && game.state === "playing") {
+      startBackgroundMusic();
+    } else {
+      stopBackgroundMusic();
+    }
   });
 
   window.addEventListener("keydown", (event) => keys.add(event.key.toLowerCase()));
@@ -1367,12 +1483,14 @@
       if (!LEVELS[level]) throw new Error(`Unknown level: ${level}`);
       selectedLevel = level;
       stopUrgentAlarm();
+      stopBackgroundMusic();
       game = createInitialGame(selectedLevel);
       syncHud();
     }
   };
 
   resizeCanvas();
+  syncMusicToggle();
   syncHud();
   requestAnimationFrame(loop);
 })();
