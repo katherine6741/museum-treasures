@@ -21,14 +21,6 @@ const checks = [
   ["game.js", "CAUGHT_ANIMATION_DURATION"],
   ["game.js", "URGENT_ALARM_THRESHOLD = 10"],
   ["game.js", "MASTER_VOLUME"],
-  ["game.js", "BACKGROUND_MUSIC_VOLUME"],
-  ["game.js", "startBackgroundMusic"],
-  ["game.js", "updateBackgroundMusic"],
-  ["game.js", "playMusicWakeCue"],
-  ["game.js", "playMusicPulse"],
-  ["game.js", "syncMusicToggle"],
-  ["index.html", "musicToggle"],
-  ["style.css", "sound-toggle"],
   ["game.js", "playAlarmBeep"],
   ["game.js", "updateUrgentAlarm"],
   ["game.js", "triggerCaughtAnimation"],
@@ -36,6 +28,8 @@ const checks = [
   ["index.html", "ALARM 45.00"],
   ["game.js", "LOOK_PITCH_SPEED"],
   ["game.js", "CAMERA_FOLLOW_RATE"],
+  ["game.js", "MAX_CAMERA_PITCH = 0.18"],
+  ["game.js", "TURN_SPEED = 1.8"],
   ["game.js", "updateCameraSmoothing"],
   ["game.js", "lerpAngle"],
   ["game.js", "cameraAngle"],
@@ -67,7 +61,19 @@ const checks = [
 ];
 
 const forbiddenChecks = [
-  ["game.js", "createMusicDrone"]
+  ["game.js", "createMusicDrone"],
+  ["game.js", "BACKGROUND_MUSIC_VOLUME"],
+  ["game.js", "startBackgroundMusic"],
+  ["game.js", "updateBackgroundMusic"],
+  ["game.js", "playMusicWakeCue"],
+  ["game.js", "playMusicPulse"],
+  ["game.js", "musicEnabled"],
+  ["game.js", "bobTime"],
+  ["game.js", "bobAmount"],
+  ["game.js", "CAMERA_BOB"],
+  ["game.js", "CAMERA_LEAN"],
+  ["index.html", "musicToggle"],
+  ["style.css", "sound-toggle"]
 ];
 
 const files = new Map();
