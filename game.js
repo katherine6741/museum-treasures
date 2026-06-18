@@ -4,18 +4,14 @@
   const TILE = 1;
   const PLAYER_RADIUS = 0.18;
   const BASE_SPEED = 2.35;
-  const TURN_SPEED = 2.45;
-  const LOOK_PITCH_SPEED = 1.45;
-  const CAMERA_FOLLOW_RATE = 12;
-  const CAMERA_BOB_RATE = 10;
-  const CAMERA_BOB_STRENGTH = 0.012;
-  const CAMERA_LEAN_STRENGTH = 0.018;
+  const TURN_SPEED = 1.8;
+  const LOOK_PITCH_SPEED = 0.72;
+  const CAMERA_FOLLOW_RATE = 18;
+  const MAX_CAMERA_PITCH = 0.18;
   const ESCAPE_TIME_LIMIT = 45;
   const CAUGHT_ANIMATION_DURATION = 1.8;
   const URGENT_ALARM_THRESHOLD = 10;
   const MASTER_VOLUME = 0.28;
-  const BACKGROUND_MUSIC_VOLUME = 0.62;
-  const MUSIC_NOTE_SCALE = [196, 233.08, 261.63, 293.66, 349.23, 392];
   const FOV = Math.PI / 3;
   const MAX_RAY_DISTANCE = 18;
 
@@ -137,7 +133,6 @@
   const messageText = document.getElementById("messageText");
   const startButton = document.getElementById("startButton");
   const restartButton = document.getElementById("restartButton");
-  const musicToggle = document.getElementById("musicToggle");
   const difficultyButtons = Array.from(document.querySelectorAll(".difficulty"));
   const moveJoystick = new window.MuseumControls.TouchJoystick(
     document.getElementById("moveJoystick"),
@@ -155,9 +150,6 @@
   let audioContext = null;
   let masterGain = null;
   let nextAlarmBeepAt = 0;
-  let musicEnabled = true;
-  let backgroundMusic = null;
-  let nextMusicNoteAt = 0;
 
   function createInitialGame(levelKey) {
     const config = LEVELS[levelKey];
@@ -176,10 +168,7 @@
         targetAngle: 0,
         cameraAngle: 0,
         targetPitch: 0,
-        cameraPitch: 0,
-        bobTime: 0,
-        bobAmount: 0,
-        lean: 0
+        cameraPitch: 0
       },
       playerHearts: 3,
       hasDiamond: false,
@@ -223,13 +212,10 @@
   }
 
   async function startGame() {
-    const audioReady = await prepareAudio();
+    await prepareAudio();
     stopUrgentAlarm();
     game = createInitialGame(selectedLevel);
     game.state = "playing";
-    if (audioReady) {
-      startBackgroundMusic();
-    }
     startOverlay.classList.add("hidden");
     messageOverlay.classList.add("hidden");
     syncHud();
@@ -237,7 +223,6 @@
 
   function endGame(title, text) {
     stopUrgentAlarm();
-    stopBackgroundMusic();
     game.state = title === "Treasure Escaped" ? "won" : "lost";
     messageTitle.textContent = title;
     messageText.textContent = text;
@@ -247,7 +232,6 @@
 
   function triggerCaughtAnimation(reason) {
     stopUrgentAlarm();
-    stopBackgroundMusic();
     game.state = "caught";
     game.caughtTime = 0;
     game.caughtReason = reason;
@@ -280,77 +264,6 @@
       }
     }
     return audioContext.state === "running";
-  }
-
-  function startBackgroundMusic() {
-    if (!musicEnabled || !audioContext || !masterGain) return;
-    if (backgroundMusic) {
-      backgroundMusic.gain.gain.setTargetAtTime(BACKGROUND_MUSIC_VOLUME, audioContext.currentTime, 0.5);
-      return;
-    }
-
-    const gain = audioContext.createGain();
-    gain.gain.setValueAtTime(0.0001, audioContext.currentTime);
-    gain.gain.exponentialRampToValueAtTime(BACKGROUND_MUSIC_VOLUME, audioContext.currentTime + 1.2);
-
-    gain.connect(masterGain);
-
-    backgroundMusic = { gain };
-    playMusicWakeCue();
-    nextMusicNoteAt = audioContext.currentTime + 0.32;
-  }
-
-  function stopBackgroundMusic() {
-    if (!backgroundMusic || !audioContext) return;
-    backgroundMusic.gain.gain.cancelScheduledValues(audioContext.currentTime);
-    backgroundMusic.gain.gain.setTargetAtTime(0.0001, audioContext.currentTime, 0.28);
-    backgroundMusic = null;
-    nextMusicNoteAt = 0;
-  }
-
-  function updateBackgroundMusic() {
-    if (!musicEnabled || !backgroundMusic || !audioContext || !masterGain) return;
-    if (audioContext.state === "suspended") return;
-    const now = audioContext.currentTime;
-    if (now < nextMusicNoteAt) return;
-
-    const noteIndex = Math.floor((game.player.x * 3 + game.player.y * 5 + now) % MUSIC_NOTE_SCALE.length);
-    const frequency = MUSIC_NOTE_SCALE[noteIndex] * (game.hasDiamond ? 1.5 : 1);
-    playMusicPulse(frequency, game.hasDiamond);
-    nextMusicNoteAt = now + (game.hasDiamond ? 0.36 : 0.58);
-  }
-
-  function playMusicWakeCue() {
-    playMusicPulse(392, false, 0.2);
-    playMusicPulse(523.25, false, 0.38);
-  }
-
-  function playMusicPulse(frequency, urgent, delay = 0) {
-    const start = audioContext.currentTime + delay;
-    const duration = urgent ? 0.2 : 0.34;
-    const oscillator = audioContext.createOscillator();
-    const gain = audioContext.createGain();
-    const filter = audioContext.createBiquadFilter();
-
-    oscillator.type = urgent ? "triangle" : "sine";
-    oscillator.frequency.setValueAtTime(frequency, start);
-    oscillator.frequency.setValueAtTime(frequency, start + duration);
-    filter.type = "lowpass";
-    filter.frequency.setValueAtTime(urgent ? 1180 : 820, start);
-    gain.gain.setValueAtTime(0.0001, start);
-    gain.gain.exponentialRampToValueAtTime(urgent ? 0.34 : 0.3, start + 0.035);
-    gain.gain.exponentialRampToValueAtTime(0.0001, start + duration);
-
-    oscillator.connect(filter);
-    filter.connect(gain);
-    gain.connect(backgroundMusic.gain);
-    oscillator.start(start);
-    oscillator.stop(start + duration + 0.04);
-  }
-
-  function syncMusicToggle() {
-    musicToggle.textContent = musicEnabled ? "Music On" : "Music Off";
-    musicToggle.setAttribute("aria-pressed", String(musicEnabled));
   }
 
   function stopUrgentAlarm() {
@@ -450,8 +363,12 @@
     const strafeAmount = strafeInput * BASE_SPEED * speedModifier * dt;
 
     game.player.targetAngle += turnInput * TURN_SPEED * dt;
-    game.player.targetPitch = clamp(game.player.targetPitch + pitchInput * LOOK_PITCH_SPEED * dt, -0.34, 0.34);
-    updateCameraSmoothing(dt, forwardInput, strafeInput);
+    game.player.targetPitch = clamp(
+      game.player.targetPitch + pitchInput * LOOK_PITCH_SPEED * dt,
+      -MAX_CAMERA_PITCH,
+      MAX_CAMERA_PITCH
+    );
+    updateCameraSmoothing(dt);
 
     const movementAngle = game.player.targetAngle;
     tryMove(
@@ -493,14 +410,10 @@
     }
   }
 
-  function updateCameraSmoothing(dt, forwardInput, strafeInput) {
+  function updateCameraSmoothing(dt) {
     const follow = 1 - Math.exp(-CAMERA_FOLLOW_RATE * dt);
-    const moveIntensity = clamp(Math.hypot(forwardInput, strafeInput), 0, 1);
     game.player.cameraAngle = lerpAngle(game.player.cameraAngle, game.player.targetAngle, follow);
     game.player.cameraPitch += (game.player.targetPitch - game.player.cameraPitch) * follow;
-    game.player.bobTime += moveIntensity * CAMERA_BOB_RATE * dt;
-    game.player.bobAmount += (moveIntensity - game.player.bobAmount) * Math.min(1, dt * 8);
-    game.player.lean += (strafeInput * CAMERA_LEAN_STRENGTH - game.player.lean) * Math.min(1, dt * 7);
   }
 
   function currentWasteHazard() {
@@ -582,9 +495,8 @@
     resizeCanvas();
     const width = canvas.width;
     const height = canvas.height;
-    const bob = Math.sin(game.player.bobTime) * game.player.bobAmount * CAMERA_BOB_STRENGTH;
-    const cameraPitch = game.player.cameraPitch + bob;
-    const cameraAngle = game.player.cameraAngle + game.player.lean;
+    const cameraPitch = game.player.cameraPitch;
+    const cameraAngle = game.player.cameraAngle;
     const horizon = height * (0.48 + cameraPitch);
 
     renderMuseumBackdrop(width, height, horizon, time);
@@ -1414,7 +1326,6 @@
         return;
       }
     }
-    updateBackgroundMusic();
     updateUrgentAlarm(time);
     syncHud();
   }
@@ -1442,23 +1353,11 @@
   });
   restartButton.addEventListener("click", () => {
     stopUrgentAlarm();
-    stopBackgroundMusic();
     startOverlay.classList.remove("hidden");
     messageOverlay.classList.add("hidden");
     game = createInitialGame(selectedLevel);
     syncHud();
   });
-  musicToggle.addEventListener("click", async () => {
-    musicEnabled = !musicEnabled;
-    syncMusicToggle();
-    const audioReady = await prepareAudio();
-    if (musicEnabled && game.state === "playing" && audioReady) {
-      startBackgroundMusic();
-    } else {
-      stopBackgroundMusic();
-    }
-  });
-
   window.addEventListener("keydown", (event) => keys.add(event.key.toLowerCase()));
   window.addEventListener("keyup", (event) => keys.delete(event.key.toLowerCase()));
   window.addEventListener("resize", resizeCanvas, { passive: true });
@@ -1471,14 +1370,12 @@
       if (!LEVELS[level]) throw new Error(`Unknown level: ${level}`);
       selectedLevel = level;
       stopUrgentAlarm();
-      stopBackgroundMusic();
       game = createInitialGame(selectedLevel);
       syncHud();
     }
   };
 
   resizeCanvas();
-  syncMusicToggle();
   syncHud();
   requestAnimationFrame(loop);
 })();

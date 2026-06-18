@@ -110,30 +110,6 @@ button {
   white-space: nowrap;
 }
 
-.stats .sound-toggle {
-  pointer-events: auto;
-  min-height: 34px;
-  padding: 0 11px;
-  border: 1px solid rgba(255, 255, 255, 0.24);
-  border-radius: 8px;
-  color: #dff7ff;
-  background:
-    linear-gradient(180deg, rgba(85, 214, 255, 0.2), rgba(255, 255, 255, 0.06)),
-    rgba(4, 9, 18, 0.52);
-  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.18);
-  cursor: pointer;
-  font-size: 12px;
-  font-weight: 900;
-}
-
-.stats .sound-toggle[aria-pressed="false"] {
-  color: #ffccd7;
-  border-color: rgba(255, 47, 95, 0.38);
-  background:
-    linear-gradient(180deg, rgba(255, 47, 95, 0.2), rgba(255, 255, 255, 0.04)),
-    rgba(4, 9, 18, 0.52);
-}
-
 .alarm {
   color: white;
   padding: 6px 10px;

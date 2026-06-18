@@ -46,7 +46,7 @@ https://museum-treasures.pages.dev/
 - Museum-themed visuals including exhibit cases, statues, wall artwork, polished floors, ceiling treatment, and Exit signage.
 - Security systems including blinking infrared lasers, retractable spikes, toxic waste, and patrolling guards.
 - Guard line-of-sight chasing and a caught animation when the player fails to escape.
-- Diamond objective, 45-second escape timer, final 10-second alarm sound, and adaptive background music.
+- Diamond objective, 45-second escape timer, and a focused alarm sound during the final 10 seconds.
 - Minimap with player position and a direction beam showing the player's current facing direction.
 - Static GitHub Pages-friendly structure with no build step required.
 
@@ -61,7 +61,7 @@ Key design decisions included:
 - Making the minimap more useful by showing the player's current position and facing direction with a beam.
 - Rebalancing difficulty levels so Easy is approachable, Medium adds meaningful traps, and Hard remains challenging but reachable.
 - Improving the museum feeling with exhibit cases, statues, artwork, polished floors, ceiling color treatment, Exit signage, realistic security guards, and infrared-style lasers.
-- Adding audio in stages: alarm beeps for urgency, then adaptive background music, then tuning the sound to remove unwanted drone noise.
+- Using focused alarm beeps during the final 10 seconds while keeping exploration free from continuous background audio.
 - Keeping the project static and dependency-light so it can run easily in a browser and deploy cleanly to Cloudflare Pages or GitHub Pages.
 
 This process reflects the IBL goal of moving from question and concept to prototype, testing, feedback, and final presentation.
@@ -72,7 +72,7 @@ This process reflects the IBL goal of moving from question and concept to protot
 - CSS3
 - Vanilla JavaScript
 - Canvas 2D rendering
-- Web Audio API for alarm and background music
+- Web Audio API for the final countdown alarm
 - GitHub Pages-ready static deployment
 
 ## Files
